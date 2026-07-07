@@ -1,0 +1,19 @@
+# OS / editor cruft
+.DS_Store
+*.swp
+*~
+
+# Secrets / local env — never track
+.env
+.env.*
+!.env.example
+
+# Claude agent folder: keep the installed skills, ignore local/credential-prone state
+# (specify init warns the agent folder may hold auth tokens / private artifacts)
+.claude/settings.local.json
+.claude/*.local.json
+
+# Node / build artifacts (this is a markdown+bash extension, but belt-and-suspenders)
+node_modules/
+dist/
+build/
