@@ -1,0 +1,59 @@
+{
+  "_note": "Historical artifact migrated from snackbyte-base specs/004-clickup-sync. Runtime ClickUp IDs (workspaceId/spaceId/listId, card.id, userStories[].id) and content hashes have been stripped — they were snackbyte-base's live sync targets, not this repo's. Structure, statusMapping, and the user-story dependency graph are retained as a record of the implemented manifest shape.",
+  "schemaVersion": "1",
+  "feature": "001-clickup-sync",
+  "workspaceId": "",
+  "spaceId": "",
+  "listId": "",
+  "statusMapping": {
+    "not-started": "ready for development",
+    "in-progress": "in development",
+    "done": "shipped"
+  },
+  "card": {
+    "id": "",
+    "hash": ""
+  },
+  "userStories": [
+    {
+      "us": "US1",
+      "id": "",
+      "hash": "",
+      "dependsOn": []
+    },
+    {
+      "us": "US2",
+      "id": "",
+      "hash": "",
+      "dependsOn": [
+        "US1"
+      ]
+    },
+    {
+      "us": "US3",
+      "id": "",
+      "hash": "",
+      "dependsOn": [
+        "US1",
+        "US2"
+      ]
+    },
+    {
+      "us": "US4",
+      "id": "",
+      "hash": "",
+      "dependsOn": [
+        "US1",
+        "US2"
+      ]
+    },
+    {
+      "us": "US5",
+      "id": "",
+      "hash": "",
+      "dependsOn": [
+        "US1"
+      ]
+    }
+  ]
+}
