@@ -276,3 +276,18 @@ specifying rather than forcing one spec to carry both:
 
 Run the normal flow (`/speckit-specify`) from a feature dir per track — do NOT run it in this
 backlog dir directly.
+
+---
+
+## Deferred validation (carried over from 001)
+
+- **SC-007 negative path — provision fail-loud on insufficient statuses.** 001's live
+  validation (T030, 2026-07-11) exercised every positive scenario and the one-way/idempotence
+  criteria against a real workspace, but did NOT trigger the negative path where a target list
+  cannot represent not-started / in-progress / done as three distinct statuses. Every list in
+  the `jeff-fichtner` ClickUp workspace ships the full 9-status set, so reproducing it needs a
+  purpose-built degenerate list (a status set with fewer than three distinguishable states).
+  The fail-loud logic IS present in the provision command contract (stop, name the missing
+  statuses, write nothing) — only the live trigger is unverified. Build the degenerate list and
+  confirm provision stops + names the gap + leaves the manifest untouched when a lifecycle spec
+  touches provisioning.
