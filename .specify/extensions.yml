@@ -1,0 +1,27 @@
+# Spec Kit extension registry
+#
+# Lists the installed extension packages under `.specify/extensions/` and wires their
+# commands into the Spec Kit lifecycle. The stock speckit skills read this file's
+# `hooks.<lifecycle_point>` entries (e.g. `after_plan`, `after_tasks`, `after_implement`)
+# during their pre-/post-execution hook checks. Hooks with `optional: true` are offered to
+# the user, not auto-run; set `enabled: false` on any row to disable it without removing it.
+
+installed:
+  - clickup-sync
+
+hooks:
+  after_plan:
+    - extension: clickup-sync
+      command: speckit.clickup.provision
+      optional: true
+      description: "Provision the ClickUp space + shared list and record targets in the feature manifest"
+  after_tasks:
+    - extension: clickup-sync
+      command: speckit.clickup.sync
+      optional: true
+      description: "Sync the feature-card (body, US-subtasks, checklist, dependencies, status) after task generation"
+  after_implement:
+    - extension: clickup-sync
+      command: speckit.clickup.sync
+      optional: true
+      description: "Sync the feature-card after implementation so ClickUp reflects the completed state"

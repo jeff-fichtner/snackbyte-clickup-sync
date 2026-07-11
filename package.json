@@ -1,0 +1,13 @@
+{
+  "name": "snackbyte-clickup-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Spec Kit scaffold + the clickup-sync extension. This package.json exists only to provide the local check gate the spec tasks reference (check:all / test:release); the extension itself has no Node runtime dependency.",
+  "scripts": {
+    "lint:sh": "find .specify -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 -n1 bash -n",
+    "test:sh": "bash .specify/scripts/bash/run-tests.sh",
+    "test:release": "bash .specify/scripts/bash/run-tests.sh",
+    "check:all": "npm run lint:sh && npm run test:sh"
+  },
+  "license": "MIT"
+}
