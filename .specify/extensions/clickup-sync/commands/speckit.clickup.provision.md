@@ -12,9 +12,28 @@ the connected ClickUp MCP server — no API/auth code.
 ## Preconditions
 
 - The ClickUp MCP server is connected.
-- `.specify/extensions/clickup-sync/config.yml` has real `space` and `list` values (not the
-  `<...>` placeholders). If either is still a placeholder, **stop** and tell the user to fill
-  `config.yml`.
+- `.specify/extensions/clickup-sync/config.yml` resolves to real `space`/`list` values via the
+  placeholder flow below.
+
+## Config resolution (placeholder → ask → remember)
+
+Before doing anything else, resolve `space` and `list` from
+`.specify/extensions/clickup-sync/config.yml`:
+
+1. If `enabled: false` is set in `config.yml`, the user has previously **declined** ClickUp
+   sync for this repo. **Silently do nothing and exit 0** — do NOT ask again. (This is the
+   "know not to ask them again" state.)
+2. If both `space` and `list` hold real values (not `<...>` placeholders), use them — proceed
+   to the Steps below. Do not ask.
+3. If either is still a `<...>` placeholder, **ask the user once**: "This repo isn't wired to a
+   ClickUp space/list yet. Give me the ClickUp space name and shared-list name to sync into, or
+   say you don't want ClickUp sync here."
+   - **If they provide values** → write them into `config.yml` (replace the placeholders) and
+     continue. The saved values mean this question is never asked again.
+   - **If they decline** → set `enabled: false` in `config.yml` and record a short note, then
+     exit 0. Never ask again on subsequent runs (handled by rule 1). Do not sync.
+   - Only ask **once per run**; if the user gives an unusable answer, stop with a clear message
+     rather than re-prompting in a loop.
 
 ## Steps
 
@@ -24,9 +43,8 @@ the connected ClickUp MCP server — no API/auth code.
    .specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh path
    ```
 
-2. **Read config** — parse `space` and `list` from
-   `.specify/extensions/clickup-sync/config.yml`. If either is `<...>`, stop with an
-   instruction to configure.
+2. **Read config** — use the `space`/`list` values resolved by the "Config resolution" block
+   above (placeholders are already handled there; if you reached this step they are real).
 
 3. **Locate the space** — call the ClickUp MCP tool `clickup_get_workspace_hierarchy`
    (`max_depth: "2"`). Find the space whose name matches `config.space`.

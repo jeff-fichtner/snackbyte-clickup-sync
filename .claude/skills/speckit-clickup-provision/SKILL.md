@@ -23,13 +23,16 @@ the connected ClickUp MCP server — no API/auth code.
 
 1. Read the full command body at
    `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md`.
-2. Follow it verbatim: resolve the active feature and manifest, read `config.yml`, locate the
-   space via `clickup_get_workspace_hierarchy`, find-or-create the shared list, resolve the
+2. Resolve config first (placeholder → ask → remember): if `config.yml` has `enabled: false`,
+   silently no-op (the user already declined — never re-ask). If `space`/`list` are still
+   `<...>` placeholders, ask the user **once** for the space/list; save real values they give
+   (never ask again), or write `enabled: false` if they decline.
+3. Then follow the command verbatim: resolve the active feature and manifest, locate the space
+   via `clickup_get_workspace_hierarchy`, find-or-create the shared list, resolve the
    `not-started`/`in-progress`/`done` status mapping from `clickup_get_list`, and write the
    targets into the feature manifest via `clickup-manifest.sh set-targets`.
-3. Fail loud (stop, write nothing) on a missing/ambiguous space, unfilled `config.yml`
-   placeholders, or a list whose statuses cannot represent the three logical states distinctly
-   — naming exactly what is missing.
+4. Fail loud (stop, write nothing) on a missing/ambiguous space or a list whose statuses cannot
+   represent the three logical states distinctly — naming exactly what is missing.
 
 ## Done When
 

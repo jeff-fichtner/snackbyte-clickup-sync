@@ -1,27 +1,32 @@
-# Spec Kit extension registry
-#
-# Lists the installed extension packages under `.specify/extensions/` and wires their
-# commands into the Spec Kit lifecycle. The stock speckit skills read this file's
-# `hooks.<lifecycle_point>` entries (e.g. `after_plan`, `after_tasks`, `after_implement`)
-# during their pre-/post-execution hook checks. Hooks with `optional: true` are offered to
-# the user, not auto-run; set `enabled: false` on any row to disable it without removing it.
-
 installed:
-  - clickup-sync
-
+- clickup-sync
+settings:
+  auto_execute_hooks: true
 hooks:
   after_plan:
-    - extension: clickup-sync
-      command: speckit.clickup.provision
-      optional: true
-      description: "Provision the ClickUp space + shared list and record targets in the feature manifest"
+  - extension: clickup-sync
+    command: speckit.clickup.provision
+    enabled: true
+    optional: true
+    priority: 15
+    prompt: Provision the ClickUp space + shared list for this feature?
+    description: Find-or-create the ClickUp target and record it in the feature manifest
+    condition: null
   after_tasks:
-    - extension: clickup-sync
-      command: speckit.clickup.sync
-      optional: true
-      description: "Sync the feature-card (body, US-subtasks, checklist, dependencies, status) after task generation"
+  - extension: clickup-sync
+    command: speckit.clickup.sync
+    enabled: true
+    optional: true
+    priority: 15
+    prompt: Sync this feature's card to ClickUp?
+    description: Mirror the feature-card, US-subtasks, checklist, and status to ClickUp
+    condition: null
   after_implement:
-    - extension: clickup-sync
-      command: speckit.clickup.sync
-      optional: true
-      description: "Sync the feature-card after implementation so ClickUp reflects the completed state"
+  - extension: clickup-sync
+    command: speckit.clickup.sync
+    enabled: true
+    optional: true
+    priority: 15
+    prompt: Sync this feature's card to ClickUp?
+    description: Mirror the feature-card, US-subtasks, checklist, and status to ClickUp
+    condition: null
