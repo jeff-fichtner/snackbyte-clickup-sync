@@ -13,6 +13,9 @@ materializes as soon as `spec.md` exists and is enriched on every run.
 ## Preconditions
 
 - The ClickUp MCP server is connected.
+- ClickUp sync is not disabled for this repo. If `.specify/extensions/clickup-sync/config.yml`
+  has `enabled: false` (the user previously declined), **silently do nothing and exit 0** — do
+  not ask, do not sync. (Matches provision's decline state.)
 - The manifest has `listId` and `statusMapping`. If not, **refuse** and instruct the user to
   run `/speckit-clickup-provision` first — do NOT create the list or guess a mapping here.
   Check with:

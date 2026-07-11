@@ -17,3 +17,6 @@
 node_modules/
 dist/
 build/
+
+# Rendered spec HTML — derived output of @snackbyte/spec-render, regenerable
+specs/**/*.html
