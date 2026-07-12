@@ -9,8 +9,8 @@
 > (branch-per-feature, ordered `/speckit-*` runs) that new features here will follow; these
 > spec docs are retained as the historical record of the design that shipped. The
 > per-feature manifest `.clickup-sync.json` has had its live ClickUp runtime IDs stripped
-> (they were snackbyte-base's, not this repo's). Follow-on work is tracked in
-> [`../002-clickup-lifecycle/`](../002-clickup-lifecycle/BACKLOG.md).
+> (they were snackbyte-base's, not this repo's). Follow-on work is specified in
+> [`../002-clickup-lifecycle/`](../002-clickup-lifecycle/spec.md).
 
 **Feature Branch**: `001-clickup-sync` (migrated from `snackbyte-base` `004-clickup-sync`)
 
