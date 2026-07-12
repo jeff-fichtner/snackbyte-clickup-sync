@@ -1,8 +1,28 @@
-# ClickUp Task Sync (Spec Kit extension)
+# ClickUp plug (Spec Kit extension)
+
+The **ClickUp plug** for [snackbyte-speckit-engine](../../../README.md) — the first (and, so far,
+only) external tracker plug. It is one implementation of the engine's tracker interface: the engine
+drives the generic lifecycle, this plug turns those lifecycle events into real ClickUp actions.
+
+**The tracker interface a plug implements** (what the engine asks any plug to do):
+
+- **resolve-target / status-mapping** — find-or-create the tracker's container and map the engine's
+  logical states onto the tracker's real statuses (here: provision the ClickUp space + shared list,
+  map `not-started`/`in-progress`/`done` onto the list's statuses).
+- **create/update item** — materialize a feature and its user stories as tracker items.
+- **set-checklist** — render the feature's `tasks.md` lines onto the item.
+- **link-dependency** — reflect user-story dependencies.
+- **update-status** — write the derived lifecycle state.
+- **attach-provenance** — (future) link the commits/PRs that shipped the feature.
+
+Another plug (Linear, a local file, …) implements the same interface its own way; the engine does
+not change. This plug's implementation follows.
+
+---
 
 Mirrors each Spec Kit feature into ClickUp for project-management visibility. **One-way**
 (repo → ClickUp), idempotent, and **MCP-only** — every ClickUp operation goes through the
-connected ClickUp MCP server; this extension ships no API client, auth, or credentials.
+connected ClickUp MCP server; this plug ships no API client, auth, or credentials.
 
 ## What it creates in ClickUp
 

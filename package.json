@@ -1,8 +1,8 @@
 {
-  "name": "snackbyte-clickup-sync",
+  "name": "snackbyte-speckit-engine",
   "version": "1.0.0",
   "private": true,
-  "description": "Spec Kit scaffold + the clickup-sync extension. This package.json exists only to provide the local check gate the spec tasks reference (check:all / test:release); the extension itself has no Node runtime dependency.",
+  "description": "snackbyte-speckit-engine — a Spec Kit lifecycle engine with swappable tracker plugs (ClickUp is the first plug). This package.json exists only to provide the local check gate (check:all / test:release); the engine and its plugs have no Node runtime dependency.",
   "scripts": {
     "lint:sh": "find .specify -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 -n1 bash -n",
     "test:sh": "bash .specify/scripts/bash/run-tests.sh",
