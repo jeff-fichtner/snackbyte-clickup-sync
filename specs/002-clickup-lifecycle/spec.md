@@ -1,4 +1,4 @@
-# Feature Specification: ClickUp Lifecycle, Test-and-Handoff, and Adaptive Sync
+# Feature Specification: Engine Lifecycle, Test-and-Handoff, and Adaptive Sync
 
 **Feature Branch**: `002-clickup-lifecycle`
 
@@ -6,21 +6,30 @@
 
 **Status**: Draft
 
-**Input**: User description: "Specify all of the clickup-lifecycle backlog (§0–§5) as one
-feature: the post-implement test-everything + handoff + close-out gate, the full status
-lifecycle advancing per Spec Kit command, human-testing handoff, a manual/light tracking mode,
-agent-designed per-project ClickUp rules, and linking GitHub commits/PRs to ClickUp cards."
+**Input**: User description: "Specify all of the lifecycle backlog (§0–§5) as one feature: the
+post-implement test-everything + handoff + close-out gate, the full status lifecycle advancing per
+Spec Kit command, human-testing handoff, a manual/light tracking mode, agent-designed per-project
+rules, and linking GitHub commits/PRs to tracker items."
 
 > This spec supersedes the original `BACKLOG.md` that formerly lived in this directory; the
 > backlog's six tracks (§0–§5) are fully captured as the user stories below and it has been
 > removed. Section references like "§0"/"§5" throughout refer to those original backlog tracks.
 
-This feature builds on the shipped `001-clickup-sync` extension (one-way, MCP-only, idempotent,
-scaffolding-only — the five constitution principles) without revisiting its core mapping
-(feature = card, user story = subtask, `tasks.md` line = checklist item). It extends that base
-along six independent tracks drawn from this feature's original backlog. Each track is a
-separately deliverable slice; the priorities below reflect the backlog's own ordering (§0 and
-the ClickUp lifecycle first, enrichment later).
+**Engine vs. plug — how to read this spec.** This feature specifies **snackbyte-speckit-engine**:
+a generic, tracker-agnostic Spec Kit lifecycle engine that broadcasts each lifecycle event to zero
+or more swappable tracker **plugs**. Almost everything below is **engine** behavior (deriving
+status, the per-command lifecycle, close-out, handoff, human-vs-derived status ownership, manual
+items, project-rule design) and is written tracker-agnostically. Where a requirement names ClickUp
+concretely (the MCP transport, `.clickup-sync.json`, ClickUp status names), that is **the ClickUp
+plug's implementation** of a generic engine capability — ClickUp is the first plug, not the
+subject. A second plug (Linear, a local file, …) would satisfy the same requirements its own way.
+
+This feature builds on the shipped **ClickUp plug** (`001-clickup-sync`: one-way, MCP-only,
+idempotent, scaffolding-only) without revisiting its core mapping (feature = tracker item, user
+story = subtask, `tasks.md` line = checklist item). It generalizes that plug's proven model into
+the engine and extends it along six independent tracks drawn from this feature's original backlog.
+Each track is a separately deliverable slice; the priorities below reflect the backlog's own
+ordering (§0 and the lifecycle first, enrichment later).
 
 ## Clarifications
 
@@ -377,18 +386,26 @@ with no ruleset the baked-in defaults are used unchanged.
 - **FR-027**: A proposed ruleset that would violate a constitution principle (e.g. require two-way
   sync) MUST be rejected, not honored.
 
-**Cross-cutting invariants (inherited from 001 / constitution)**
+**Cross-cutting invariants (engine + plug / constitution)**
 
-- **FR-028**: All new ClickUp operations MUST remain MCP-only (constitution II) — no API client,
-  no auth, no credentials in the repo or config.
+- **FR-028**: The engine core MUST NOT talk to any tracker directly; all tracker I/O MUST go
+  through a plug that owns its own transport and auth, shipping no API client and no credentials in
+  the repo or config (constitution II). For the ClickUp plug, that transport is the ClickUp MCP
+  server; another plug would use its own.
 - **FR-029**: The sync MUST remain one-way (constitution I) except for the explicitly-bounded
   human-owned-status carve-out (FR-017/018), which is a read-only deferral (the sync declines to
   write those statuses), NOT a write-back into the repo.
 - **FR-030**: All new deterministic logic (status derivation, item classification, provenance
   formatting, ruleset resolution) MUST live in `scripts/bash/` with `*.test.sh` coverage
-  (constitution V); MCP orchestration stays in command prompts, validated via quickstart.
-- **FR-031**: The extension MUST remain scaffolding-only (constitution IV) — no ClickUp reference
-  in shipped app source/docs/CI of an adopting repo.
+  (constitution V); each plug's tracker orchestration stays in its command prompts, validated via
+  quickstart.
+- **FR-031**: The engine and every plug MUST remain scaffolding-only (constitution IV) — no plug
+  may put a reference to its tracker into shipped app source/docs/CI of an adopting repo.
+- **FR-032**: The engine MUST function with zero external plugs (recording lifecycle state via a
+  built-in local plug), one plug, or many at once; plugs MUST be independent and purely additive —
+  attaching or removing a plug MUST NOT change engine behavior, and an uninstalled plug is a no-op,
+  not an error (constitution VI). Every ClickUp-specific requirement above is satisfied by the
+  ClickUp plug; the engine itself requires only "a plug" (the local plug suffices).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -438,15 +455,20 @@ with no ruleset the baked-in defaults are used unchanged.
   status, reported) with no failed sync.
 - **SC-012**: Close-out re-runs the check gate first and, when the gate is red, refuses to close —
   0% of close-outs proceed (sign-off / final sync / commit) over a red gate.
+- **SC-013**: The engine produces a correct lifecycle with zero external plugs (local plug only),
+  one plug, and many plugs; adding or removing a plug changes only how many trackers are mirrored,
+  never the derived lifecycle — an uninstalled plug causes no error.
 
 ## Assumptions
 
 - **Independent, prioritized slices**: the six backlog tracks are specified together but remain
-  independently deliverable; §0 (US1–US2) can ship without any ClickUp track, and each ClickUp
-  track (US3–US7) builds on 001 without revisiting its core mapping.
-- **001 is the proven base**: `001-clickup-sync` is shipped and validated (one-way, MCP-only,
-  idempotent, scaffolding-only); this feature extends it and does not re-implement it.
-- **Constitution governs**: all five principles hold. The one apparent tension — human-owned
+  independently deliverable; §0 (US1–US2) is pure engine and can ship with no external tracker
+  plug at all, and each ClickUp-facing track (US3–US7) builds on the shipped ClickUp plug without
+  revisiting its core mapping.
+- **The ClickUp plug is the proven base**: `001-clickup-sync` (the ClickUp plug) is shipped and
+  validated (one-way, MCP-only, idempotent, scaffolding-only); this feature generalizes its model
+  into the engine and extends it — it does not re-implement the plug.
+- **Constitution governs**: all six engine principles hold. The one apparent tension — human-owned
   statuses (US4) vs. one-way (I) — is treated as a read-only deferral (the sync declines to write
   certain statuses), never a write-back into the repo, so principle I is preserved.
 - **Generic across spun-up apps**: the §0 E2E phase invokes a declared per-app hook/script if

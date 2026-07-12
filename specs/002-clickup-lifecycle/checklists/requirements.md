@@ -1,4 +1,4 @@
-# Specification Quality Checklist: ClickUp Lifecycle, Test-and-Handoff, and Adaptive Sync
+# Specification Quality Checklist: Engine Lifecycle, Test-and-Handoff, and Adaptive Sync
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-07-11
