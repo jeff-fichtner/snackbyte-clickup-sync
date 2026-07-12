@@ -57,7 +57,7 @@ npm run check:all      # shell-syntax lint + every *.test.sh (the clickup-* help
 
 - [`001-clickup-sync`](specs/001-clickup-sync/spec.md) — the shipped push-and-status extension
   (this repo). Validated end-to-end against a live ClickUp workspace.
-- [`002-clickup-lifecycle`](specs/002-clickup-lifecycle/BACKLOG.md) — backlog: richer status
+- [`002-clickup-lifecycle`](specs/002-clickup-lifecycle/spec.md) — specified: richer status
   lifecycle, human-testing handoff, manual mode, per-project rules, commit/PR links, and the
-  post-implement test-everything + close-out gate. Not yet specified; split into per-track
-  feature dirs when specifying.
+  post-implement test-everything + close-out gate. Carries all six original backlog tracks
+  (§0–§5) as prioritized user stories; clarified and ready to plan.
