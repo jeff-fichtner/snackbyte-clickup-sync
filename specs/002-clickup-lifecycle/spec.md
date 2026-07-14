@@ -12,8 +12,10 @@ Spec Kit command, human-testing handoff, a manual/light tracking mode, agent-des
 rules, and linking GitHub commits/PRs to tracker items."
 
 > This spec supersedes the original `BACKLOG.md` that formerly lived in this directory; the
-> backlog's six tracks (§0–§5) are fully captured as the user stories below and it has been
+> backlog's six tracks (§0–§5) are fully captured as user stories below (US1–US7) and it has been
 > removed. Section references like "§0"/"§5" throughout refer to those original backlog tracks.
+> Two further user stories were added during design (US8 `/speckit-verify`, US9 consolidating
+> snackbyte's lifecycle extensions into the engine) — see the Clarifications section.
 
 **Engine vs. plug — how to read this spec.** This feature specifies **snackbyte-speckit-engine**:
 a generic, tracker-agnostic Spec Kit lifecycle engine that broadcasts each lifecycle event to zero
@@ -27,9 +29,10 @@ subject. A second plug (Linear, a local file, …) would satisfy the same requir
 This feature builds on the shipped **ClickUp plug** (`001-clickup-sync`: one-way, MCP-only,
 idempotent, scaffolding-only) without revisiting its core mapping (feature = tracker item, user
 story = subtask, `tasks.md` line = checklist item). It generalizes that plug's proven model into
-the engine and extends it along six independent tracks drawn from this feature's original backlog.
-Each track is a separately deliverable slice; the priorities below reflect the backlog's own
-ordering (§0 and the lifecycle first, enrichment later).
+the engine and extends it along the tracks drawn from this feature's original backlog (US1–US7),
+plus two design-time additions (US8 `/speckit-verify`, US9 extension consolidation). Each user
+story is a separately deliverable slice; the priorities below reflect the backlog's own ordering
+(§0 and the lifecycle first, enrichment later) with the two P1 additions folded in.
 
 ## Clarifications
 
@@ -37,22 +40,41 @@ ordering (§0 and the lifecycle first, enrichment later).
 
 - Q: How is the close-out ceremony (US2) invoked? → A: A distinct user-invoked command
   (`/speckit-close`), run when the human is ready — not tied to a lifecycle hook.
-- Q: What does the §0 test gate do to the `after_implement` chain when the check gate is red? →
-  A: Hard-stop the entire chain — converge and everything after it do not run until the gate is
-  green.
+- Q: Where does the test gate run, and what happens on a red gate? → A: The gate runs inside the
+  new `/speckit-verify` command (after implement + converge), not in the `after_implement` chain. A
+  red gate stops verify and blocks the `in-review` transition; the card stays at `in-development`
+  until the gate is green. (This refined an earlier "hard-stop the after_implement chain" idea once
+  `/speckit-verify` became the home of the gate.)
 - Q: Which mechanism links commit/PR provenance onto the card (US6)? → A: Both — ship Option A
   (MCP-pushed by our extension, self-contained) now; leave Option B (ClickUp's native GitHub
   integration) as a documented opt-in for teams that connect GitHub. Refinement: A and B are
   mutually exclusive per project — when B is opted in, A MUST stand down so provenance is not
   pushed redundantly (no duplicate commit links on the card).
-- Q: How is the human-owned (off-limits) status set determined (US4)? → A: As the complement of
-  the repo-owned set — the repo owns exactly the statuses in its resolved `statusMapping` (the
-  US3-expanded lifecycle states); every other status on the list is human-owned by default. No
-  hardcoded human-status name list; reuses the already-resolved per-project mapping.
+- Q: How is the human-review handoff handled (US4)? → A: The AI is the sole tracker writer; humans
+  never need to touch the tracker. Human decisions (sign-off, "couldn't test X") are given to the
+  flow and the AI reflects them onto the card. (This superseded an earlier "protect a human-owned
+  status subset" idea — there is no human write-path in the normal flow to protect.)
 - Q: How does the sync distinguish a manual item from a spec-driven feature-card (US5)? → A:
   Ownership by manifest presence — the sync only ever touches cards recorded in a feature's
   `.clickup-sync.json` manifest (reusing the 001 mechanism). Manual items (and unrelated cards)
   are simply never in a manifest, so they are never touched. No new marker/tag/custom-field.
+- Q: What is the expanded status model? → A: A six-state card lifecycle (`open` → `in-design` →
+  `ready` → `in-development` → `in-review` → `done`), config-mapped to each project's real status
+  names and degradable to a three-state floor. Every Spec Kit command syncs (writing artifacts is
+  visible as work). Subtasks stay three-state (units of work). The AI is the sole tracker writer;
+  humans signal via the flow (US4 reframed — see below).
+- Q: How is `in-review` earned, and what runs between implement and review? → A: A new
+  `/speckit-verify` command (US8): implement → converge (always) → `/speckit-verify` (recursive
+  code review + full unit gate + automatable E2E) → only on pass does the card reach `in-review`.
+  Then `/speckit-close` handles sign-off → `done`. Verify and close are two distinct commands.
+- Q: Should snackbyte's scattered Spec Kit extensions be consolidated here? → A: Yes (US9) — the
+  five snackbyte-authored extensions (git-specify-branch, specify-review-loop, analyze-autofix,
+  git-commit, clickup-sync) become command-modules of the one engine; the recursive-review module
+  serves both spec and code targets. The upstream `agent-context` (spec-kit-core) is excluded.
+  Migrating other repos onto the engine is follow-on work, out of scope here.
+- Q: What about making the lifecycle lighter/configurable (models, verbosity, optional steps)? →
+  A: Deferred to a separate backlog (`003-lifecycle-profiles`) — 002 defines the full, heaviest
+  lifecycle first; profiles layer on top once it works.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -64,15 +86,18 @@ end-to-end path as far as is automatable, then produce an honest handoff of what
 versus what remains — so that "tested" means actually exercised, not asserted, and I only get
 the genuinely-manual remainder.
 
+> US1 defines the **test-and-handoff capability**; US8 (`/speckit-verify`) is the **command that
+> runs it** at the right lifecycle moment and, on success, earns the `in-review` state. They are
+> the same gate viewed as capability (US1) vs. invocation + state transition (US8).
+
 **Why this priority**: This is the backlog's §0 and is independent of ClickUp entirely — it can
 ship first and delivers value on its own (a codified pre-handoff discipline) even if no other
 track lands. It closes the gap where the lifecycle ends at `after_implement`, before manual
 verification and close-out.
 
-**Independent Test**: On a feature with a green unit suite, run the gate → it runs the project
-check gate, attempts the E2E path (or loudly reports the per-app E2E hook is absent), and emits
-a handoff report listing verified-automatically vs. remaining-manual items with evidence. On a
-feature with a red gate, the gate fails loud and does not emit a "verified" handoff.
+**Independent Test**: On a feature with a green unit suite, run the gate → it runs the check gate,
+drives whatever E2E is automatable, and reports what was verified vs. what remains manual. On a
+feature with a red gate, it fails loud and does not report a "verified" handoff.
 
 **Acceptance Scenarios**:
 
@@ -80,9 +105,9 @@ feature with a red gate, the gate fails loud and does not emit a "verified" hand
    **Then** it records the gate as green with evidence (suite counts / gate output) and proceeds.
 2. **Given** a feature whose check gate is red, **When** the test gate runs, **Then** it stops
    with the failure surfaced and does NOT produce a "verified" handoff.
-3. **Given** a feature with a declared per-app E2E hook, **When** the test gate runs, **Then** it
-   invokes that hook and folds its result into the report; **Given** no such hook, **Then** it
-   records a loud "E2E not automated here — reason" note rather than silently skipping.
+3. **Given** a feature with automatable E2E, **When** the test gate runs, **Then** it drives that
+   E2E and folds the result into the report; whatever it cannot exercise it records with a reason
+   rather than silently skipping.
 4. **Given** the automated phases complete, **When** the handoff is produced, **Then** it lists
    what the feature does and where it lives, what was verified automatically (with evidence),
    what remains manual and why, and the exact manual steps left for the human.
@@ -93,7 +118,7 @@ feature with a red gate, the gate fails loud and does not emit a "verified" hand
 
 As a developer whose feature has an irreducible manual verification slice, I want a terminal
 close-out step that surfaces the remaining manual tasks for my explicit sign-off, marks them done
-in `tasks.md` only once I sign off, runs the final sync so the ClickUp card reaches done, and
+in `tasks.md` only once I sign off, runs the final sync so the tracker card reaches done, and
 commits the close-out edits — so that "commit vs. sync vs. close" is one ordered ceremony instead
 of three decoupled acts a human has to remember to run in order.
 
@@ -121,62 +146,83 @@ itself never commits (constitution I / 001 FR-019).
 
 ---
 
-### User Story 3 - Status advances per Spec Kit command (Priority: P1)
+### User Story 3 - Every command advances the card through the artifact lifecycle (Priority: P1)
 
-As a stakeholder watching a feature's ClickUp card, I want the card's status to reflect the stage
-the feature is actually at right now — advancing as each Spec Kit command runs (specify → clarify
-→ plan → tasks → implement) — instead of barely moving until late, so the board is a live picture
-of progress rather than a lagging one.
+As a stakeholder watching a feature's card, I want it to move on **every** Spec Kit command — not
+just when code is written — so the board shows that **writing the artifacts (spec, plan, tasks)
+is work**, not just implementation. Specifying a feature is progress; the card should say so. The
+whole point: when the AI fires off a Spec Kit command, something happens, and I want to see that
+reflected on the card right then.
 
-**Why this priority**: This is §1 and is the heart of "lifecycle." 001 derives only
+**Why this priority**: This is §1 and is the heart of the engine. 001 derives only
 not-started / in-progress / done and only re-syncs at two late hooks, so a feature can be
-specified, clarified, and planned while the card looks idle. This makes the card move with the
-work.
+specified, clarified, and planned while the card looks idle — hiding real work. This makes **every
+command update the card**, so the artifact phase is visible as work.
 
-**Independent Test**: Run each lifecycle command in turn on a feature and observe the card's
-status advance through the mapped states; a status-only bump on an unchanged card still makes
-zero content writes (idempotence preserved). A target list with fewer statuses degrades to the
-nearest available state without error.
+**The lifecycle — six logical states.** The card advances through an ordered set of at most six
+logical states, each a real transition a watcher can see:
+
+| # | Logical state | Enters when | Meaning |
+|---|---|---|---|
+| 1 | `open` | the feature exists (first command / provision) | task made, nothing started |
+| 2 | `in-design` | `after_specify` (also clarify, plan) | artifacts being written |
+| 3 | `ready` | `after_tasks` / `after_analyze` | designing done, code not started |
+| 4 | `in-development` | `after_implement` | code being written |
+| 5 | `in-review` | `/speckit-verify` passes (after converge) | AI reviewed + tested everything it can; awaits human sign-off |
+| 6 | `done` | `/speckit-close` + sign-off | complete |
+
+**Config-mapped names, fall back to 3.** These six are *logical* states; each project maps them
+onto its list's **actual** status names in config (my "in-design" may be another list's "scoping").
+A list that doesn't have six distinct statuses falls back to the three basic ones (not-started /
+in-progress / done), mapping each logical state to the nearest available one.
+
+**Independent Test**: Run each lifecycle command in turn and observe the card advance open →
+in-design → ready → in-development → in-review; a status-only change on unchanged content makes
+zero content writes. On a list configured with only three statuses, the six logical states
+collapse onto the three without error.
 
 **Acceptance Scenarios**:
 
-1. **Given** the grouped lifecycle phases are defined, **When** `/speckit-specify` →
-   `/speckit-plan` → `/speckit-tasks` → `/speckit-implement` each run, **Then** the card's status
-   is re-synced to the phase that command maps to, advancing whenever a command crosses into a new
-   phase (multiple commands may map to the same phase).
+1. **Given** the six logical states are mapped in config, **When** each Spec Kit command runs
+   (specify → clarify → plan → tasks → analyze → implement → converge), **Then** the card is
+   re-synced on **every** command and its status is set to the logical state that command maps to,
+   advancing whenever a command crosses into a new state.
 2. **Given** the status changed but no content changed, **When** the per-command sync runs,
    **Then** it writes the status and nothing else (no duplicate content writes; constitution III).
-3. **Given** a target list whose status set is smaller than the full lifecycle, **When** a state
-   with no exact match is derived, **Then** it maps to the nearest available status and reports
-   the degradation rather than failing.
+3. **Given** a list configured with fewer than six statuses (down to three), **When** a logical
+   state has no exact mapping, **Then** it collapses to the nearest configured status and the sync
+   reports the degradation rather than failing.
+4. **Given** the feature has just been provisioned and no command has run yet, **When** the card
+   is created, **Then** it starts in `open` — so the `open → in-design` transition at
+   `/speckit-specify` is itself visible as "design work started."
 
 ---
 
-### User Story 4 - Human-testing handoff without clobbering human status (Priority: P2)
+### User Story 4 - The human-review handoff happens in the flow, not on the board (Priority: P2)
 
-As a person who moves a card into a human-only state (review, testing, QA, blocked), I want the
-one-way sync to own only the states it derives and never overwrite a status a human set, so that
-marking a card "in QA" or "blocked" survives the next sync instead of being reset to a
-repo-derived value.
+As a developer, I never want to *have* to touch the tracker — the AI owns every write to the board,
+and my decisions (sign-off, "I tested everything" vs. "here's what I couldn't test") are given to
+the **flow** (at close-out, in the terminal), and the AI reflects them onto the card. The card is a
+read-only mirror I can watch; it is not something I drive.
 
-**Why this priority**: This is §2 and is the key correctness constraint 001 explicitly deferred.
-It is a direct tension with constitution I (one-way, repo wins) and must be resolved as a
-bounded, principled exception: the repo owns the states it derives; humans own a disjoint set the
-sync treats as off-limits.
+**Why this priority**: This is §2, and it resolves the correctness constraint 001 deferred — but
+in a simpler way than "protect human-set statuses." Because the AI is the *only* writer, there is
+no competing human write-path to reconcile in the normal flow. The card reaches `in-review` (state
+5) only when the AI has done everything it can — `/speckit-verify` (US8) has passed — and rests
+there; when the human returns and runs close-out, the AI advances it to `done` on sign-off.
 
-**Independent Test**: A human sets a card to a human-owned status (e.g. "in review"); the next
-sync runs and leaves that status untouched while still overwriting the repo-owned content
-(body, checkboxes, dependencies). When the card returns to a repo-derived state, the sync resumes
-ownership.
+**Independent Test**: Drive a feature through `/speckit-verify` → the AI sets the card to
+`in-review` and leaves it (no human tracker action needed); the card visibly waits. Run close-out
+and sign off in the flow → the AI advances the card to `done`. At no point is a human required to
+edit the tracker.
 
 **Acceptance Scenarios**:
 
-1. **Given** a card in a human-owned status, **When** the sync runs, **Then** it does NOT change
-   the status, but still reconciles repo-owned content (body/checkboxes/deps).
-2. **Given** a card in a repo-derived status, **When** the sync runs, **Then** it derives and sets
-   the status as usual.
-3. **Given** the set of human-owned states is defined, **When** the sync classifies the card's
-   current status, **Then** repo-owned and human-owned states are disjoint and unambiguous.
+1. **Given** the AI has taken the feature as far as it can (`/speckit-verify` passed), **When** the
+   sync runs, **Then** the AI sets the card to `in-review` and it rests there — no human tracker
+   action is needed to reach or hold that state.
+2. **Given** the human returns and runs close-out, **When** they sign off in the flow, **Then** the
+   AI writes `done` to the card — the human never touches the tracker to advance it.
 
 ---
 
@@ -186,8 +232,9 @@ As someone doing work outside the full Spec Kit pipeline, I want a lighter track
 hand-maintained item — one with no backing `tasks.md` to derive status from — so I can track
 one-off work on the same board without the sync clobbering my manually-set status.
 
-**Why this priority**: This is §3. It generalizes the extension beyond spec-driven features, but
-depends on the human-status-ownership rule from US4 to avoid clobbering, so it follows it.
+**Why this priority**: This is §3. It generalizes the extension beyond spec-driven features. A
+manual item is safe by construction — it's simply never recorded in a feature manifest, so the
+sync never touches it (FR-022).
 
 **Independent Test**: Create a manually-tracked item; the sync recognizes it as manual (no
 derivation), never overwrites its human-set status or hand-maintained content, and tells it apart
@@ -249,25 +296,104 @@ with no ruleset the baked-in defaults are used unchanged.
 
 ---
 
+### User Story 8 - `/speckit-verify` earns the review state (Priority: P1)
+
+As a developer, after implementation I want one command that makes the AI do **everything it can to
+certify the work** — recursively review the code it wrote, then run the full unit gate and every
+automatable end-to-end test — and only then mark the card `in-review`. So `in-review` means "the AI
+verified all it could," not merely "converge finished." This is the earned handoff point.
+
+**Why this priority**: This is the missing "last step before review" and it makes `in-review` an
+honest signal. It concretizes the §0 test-gate (US1) into a specific command with a specific
+trigger and a specific outcome (the state transition). Without it, the card could reach review with
+un-reviewed, un-tested work.
+
+**The sequence**: `/speckit-implement` → `after_implement` chain always runs `converge` (which may
+append unbuilt work as tasks) → the developer runs **`/speckit-verify`**, which: (a) recursively
+reviews the implemented code + tests (the same recursive-review pattern as spec review, pointed at
+code — see US9); (b) runs the full unit check gate, which MUST pass; (c) runs every automatable
+E2E as far as the tooling allows (the US1 gate); (d) on success, marks the card `in-review`. On
+failure at any step, it stops, reports, and does NOT advance to `in-review`.
+
+**Independent Test**: On a feature whose implementation is complete and green, run `/speckit-verify`
+→ it reviews the code, runs the unit gate + automatable E2E, and advances the card to `in-review`.
+On a feature with a failing gate or unreviewed issues, `/speckit-verify` stops with the failure and
+the card stays at `in-development` — it is never marked `in-review` over failing verification.
+
+**Acceptance Scenarios**:
+
+1. **Given** a completed implementation, **When** `/speckit-verify` runs, **Then** it recursively
+   reviews the code, runs the full unit gate and all automatable E2E, and — only if all pass —
+   marks the card `in-review`.
+2. **Given** the unit gate is red or the review surfaces an unresolved issue, **When**
+   `/speckit-verify` runs, **Then** it stops, reports, and leaves the card at `in-development` (never
+   `in-review`).
+3. **Given** `/speckit-verify` passed, **When** the developer later runs close-out (US2), **Then**
+   close-out proceeds from the verified `in-review` state to sign-off → `done`.
+
+---
+
+### User Story 9 - Consolidate snackbyte's lifecycle extensions into the engine (Priority: P1)
+
+As the maintainer, I want snackbyte's own scattered Spec Kit extensions — currently duplicated
+across many repos — consolidated into this one engine as command-modules, so the engine is the
+single home for the lifecycle patterns instead of N one-off copies. The engine exposes all the
+lifecycle commands plus the tracker-plug interface; a project installs the engine and gets the
+whole spine.
+
+**Why this priority**: The verify command (US8) reuses the recursive-review pattern that already
+exists as the `specify-review-loop` extension — so consolidation is a prerequisite for building
+US8 cleanly rather than duplicating the pattern. It also delivers the core engine promise: one
+place for the lifecycle.
+
+**Scope — the five snackbyte-authored extensions** become engine modules: `git-specify-branch`
+(setup: clean tree + feature branch), `specify-review-loop` (recursive artifact review),
+`analyze-autofix` (apply unambiguous artifact fixes), `git-commit` (checkpoint commit), and
+`clickup-sync` (already the ClickUp plug here). The upstream `agent-context` extension (authored by
+`spec-kit-core`, not snackbyte) is **excluded** — it stays a separately-installed community
+extension the engine coexists with. Migrating other repos off their scattered copies onto the
+engine is **follow-on work, out of scope** here (build the engine first; adoption later).
+
+**One review module, two targets**: the consolidated recursive-review module reviews whatever
+artifact it is pointed at — the **spec** (after specify, the existing behavior) or the **code +
+tests** (inside `/speckit-verify`, US8). One pattern, two invocation points; the review logic lives
+once.
+
+**Independent Test**: Install the engine into a clean repo → the full lifecycle spine is available
+(setup → spec-review → analyze-autofix → commit-checkpoint → verify → close) from the one engine
+extension, plus the tracker-plug interface. The five snackbyte modules behave as their standalone
+predecessors did; `agent-context` is untouched and still installable alongside.
+
+**Acceptance Scenarios**:
+
+1. **Given** the engine is installed, **When** a project runs the Spec Kit lifecycle, **Then** the
+   five consolidated snackbyte modules (branch-setup, spec/code review, analyze-autofix, commit
+   checkpoint, ClickUp plug) are all available from the one engine, exposing the same behavior as
+   the former standalone extensions.
+2. **Given** the recursive-review module, **When** it is invoked after specify vs. inside
+   `/speckit-verify`, **Then** the same review pattern runs against the spec vs. the code/tests
+   respectively — one implementation, two targets.
+3. **Given** the upstream `agent-context` extension, **When** the engine is installed, **Then**
+   `agent-context` is neither absorbed nor broken — it remains a separate community extension the
+   engine coexists with.
+
+---
+
 ### Edge Cases
 
-- **Red gate at close-out**: close-out (`/speckit-close`, FR-011) re-runs the phase-A test gate
-  before it does anything; if the gate is red, close-out refuses to proceed (no sign-off, no final
-  sync, no commit) and surfaces the failure — consistent with FR-005/FR-006's fail-loud posture.
-  It never closes over a red gate.
-- **Converge interaction**: `converge` runs at `after_implement` and appends unbuilt work as new
-  tasks. Per FR-006 the test gate runs before converge in the chain and a red gate hard-stops the
-  chain, so converge does not run while the gate is red; open question deferred to planning:
-  whether converge-added work (once the gate is green and converge runs) re-opens the gate on the
-  next pass.
-- **Status write-back conflict**: a human sets a human-owned status mid-flow while a repo-derived
-  status would also change — the sync must not fight the human (US4).
+- **Red gate at close-out**: close-out (`/speckit-close`) re-runs the check gate first; if it is
+  red, close-out refuses to proceed (no sign-off, no final sync, no commit) and surfaces the
+  failure. It never closes over a red gate.
+- **Converge adds work after verify**: `converge` runs in the `after_implement` chain and may
+  append unbuilt tasks. Because `in-review` is only reachable through a passing `/speckit-verify`
+  (FR-034/035), any converge-added work is still subject to verify — a feature can't reach review
+  with unbuilt work outstanding.
 - **Manual item mistaken for spec-driven** (or vice versa) in a shared list — structurally
   prevented by FR-022: ownership is manifest presence, so a card not in any feature manifest is
   never touched regardless of appearance; the sync never re-scans or classifies list contents.
-- **Commit predates the card**: the commit that finishes a feature usually cannot carry the
-  ClickUp task ID because the card is created by sync, which runs after implement commits — so at
-  commit time the ID may not exist (the §5 ordering snag).
+- **Commit vs. card ordering (US6)**: because the card is now created at provision (FR-013a),
+  before any commit, its tracker ID exists early — so provenance (US6) and any commit-message
+  convention can reference it. This resolves the old "commit predates the card" ordering snag.
 - **Fewer statuses than the lifecycle needs**: a target list with a reduced status set (US3
   degradation).
 - **Designed ruleset conflicts with the baked-in defaults or the constitution** (e.g. a proposed
@@ -281,18 +407,18 @@ with no ruleset the baked-in defaults are used unchanged.
 
 - **FR-001**: The system MUST provide a repeatable post-implement step that runs the project's
   full check gate (unit + any feature-specific `*.test.sh`) and records the result with evidence.
-- **FR-002**: The system MUST attempt the end-to-end path as far as is automatable via a declared,
-  per-app E2E hook/script when present, and MUST loudly record a reason when no such hook exists
-  rather than silently skipping.
+- **FR-002**: The system MUST drive the end-to-end path as far as is automatable — running whatever
+  E2E the AI has control over — and MUST report what it could not exercise and why, rather than
+  silently skipping.
 - **FR-003**: The system MUST identify and clearly delimit the irreducible manual remainder, with
   a stated reason each item could not be automated.
 - **FR-004**: The system MUST emit a handoff report listing: what the feature does and where it
   lives; what was verified automatically (with evidence) vs. what remains manual and why; any
   follow-ups/known gaps; and the exact manual steps left for the human.
 - **FR-005**: A red check gate MUST prevent a "verified" handoff (fail-loud).
-- **FR-006**: A red check gate MUST hard-stop the entire `after_implement` hook chain — `converge`
-  and every step after it MUST NOT run until the gate is green. The stop MUST surface the failure
-  loudly; the flow only resumes once the gate passes.
+- **FR-006**: The test gate runs inside `/speckit-verify` (US8), after `implement` and `converge`.
+  A red gate MUST stop verify — it reports the failure and does NOT advance the card to `in-review`
+  (see FR-034). The flow only proceeds once the gate passes.
 
 **Close-out ceremony (US2)**
 
@@ -314,48 +440,65 @@ with no ruleset the baked-in defaults are used unchanged.
 
 **Per-command status lifecycle (US3)**
 
-- **FR-012**: The system MUST support a richer, ordered status set beyond not-started /
-  in-progress / done, and MUST define which states are auto-derivable from Spec Kit artifacts and
-  which require an external signal.
-- **FR-013**: The system MUST re-sync the card's status on each lifecycle command (specify,
-  clarify, plan, tasks, implement), setting it to the grouped lifecycle phase that command maps to
-  (per FR-016). Several commands may map to the same phase; the card advances when a command
-  crosses into a new phase.
-- **FR-014**: A per-command status change on otherwise-unchanged content MUST make zero content
-  writes — a status-only bump (constitution III).
-- **FR-015**: When the target list has fewer statuses than the full lifecycle, the system MUST map
-  to the nearest available status and report the degradation rather than failing.
-- **FR-016**: The card's status MUST advance through grouped lifecycle phases (planning →
-  in-development → review → testing → done) rather than a distinct state per command; the mapping
-  from each Spec Kit command to its phase MUST be defined, and status MUST apply to both the
-  feature-card and its US-subtasks (each reflecting its own progress).
+- **FR-012**: The feature-card MUST support the ordered lifecycle `open` → `in-design` → `ready` →
+  `in-development` → `in-review` → `done` — six logical states, each a distinct, watcher-visible
+  transition, falling back to three where a list can't express six (FR-015).
+- **FR-013**: The engine MUST re-sync the card on **every** Spec Kit command — not a subset — and
+  set its status to the logical state that command maps to. The command→state mapping is:
+  `after_specify`/`after_clarify`/`after_plan` → `in-design`; `after_tasks`/`after_analyze` →
+  `ready`; `after_implement` → `in-development`; `after_converge` → stays `in-development` (converge
+  just appends unbuilt work as tasks, it does not certify the feature); `/speckit-verify` (on
+  pass) → `in-review`; `/speckit-close` (on sign-off) → `done`. Several commands may map to the
+  same state; the card advances when a command crosses into a new one. Every command produces a
+  sync (content and/or status); a command that changes nothing is still a no-op sync, not a
+  skipped one.
+- **FR-013a**: The card MUST be created in `open` at the earliest point a feature exists (at
+  provision, before `/speckit-specify`), so the `open → in-design` transition at specify is itself
+  visible as "design work started." (This moves card creation earlier than 001, which created it at
+  first content sync.)
+- **FR-013b**: The engine MUST be wired into a sync hook on **every** lifecycle command, which
+  requires **new hooks beyond the three 001 uses** (`after_plan`/`after_tasks`/`after_implement`):
+  at minimum `after_specify`, `after_analyze`, and `after_converge`, plus the two new commands
+  `/speckit-verify` (US8) and `/speckit-close` (US2). A command with no dedicated sync hook
+  available MUST still not leave the card stale — the next command that does fire reconciles it.
+  Adding these hooks and commands is in scope for this feature.
+- **FR-014**: Unchanged content MUST make zero writes; a status-only change writes only the status
+  (constitution III). Idempotent, per 001.
+- **FR-015**: The six logical states MUST be **mapped to a list's actual status names in config**
+  (names differ per list). Where a list lacks six distinct statuses, the mapping falls back to
+  three (not-started / in-progress / done), mapping each logical state to the nearest configured
+  one — the sync degrades rather than failing.
+- **FR-016**: The command→state mapping and the config'd logical→actual name mapping MUST be
+  defined per FR-013/FR-015. The full six-state lifecycle applies to the **feature-card**. **User-story
+  subtasks are units of work and MUST use only three states** — not-started / in-progress / done —
+  derived from that story's own task completion; a subtask never carries the design/ready/review
+  states (those are feature-level concepts). `in-review` at the card level means "all the units of
+  work are done; we are now reviewing the feature as a whole."
 
-**Human-testing handoff (US4)**
+**Human-review handoff (US4)**
 
-- **FR-017**: The system MUST treat a disjoint set of human-owned statuses as off-limits (the sync
-  MUST NOT overwrite them). That set is defined by FR-017a as the complement of the repo-owned
-  `statusMapping` statuses on the target list — not a hardcoded name list.
-- **FR-017a**: The human-owned (off-limits) status set MUST be derived as the **complement** of
-  the repo-owned set on the target list: the repo owns exactly the statuses present in its
-  resolved `statusMapping` (the US3 grouped lifecycle phases — planning → in-development → review →
-  testing → done — as resolved by provision onto the list's real statuses), and **every other
-  status on the list is human-owned by default**. No separate hardcoded human-status name list is
-  maintained; the two sets are disjoint by construction because one is the complement of the
-  other. This reuses the already-resolved, per-project `statusMapping` rather than adding new
-  config.
-- **FR-018**: When a card is in a human-owned status, the sync MUST leave the status unchanged
-  while still reconciling repo-owned content (body, checkboxes, dependencies).
-- **FR-019**: When a card is in a repo-derived status, the sync MUST derive and set the status
-  normally.
+- **FR-017**: The engine (the AI) MUST be the sole writer of the card in the normal flow — every
+  status and content write originates from a Spec Kit command or close-out that the AI runs. A
+  human is NEVER required to touch the tracker to advance a feature; human decisions are given to
+  the flow (in the terminal, at close-out) and the AI reflects them onto the card. The tracker is a
+  read-only mirror for humans.
+- **FR-017a**: The engine MUST reach `in-review` (state 5) only when `/speckit-verify` passes (US8)
+  — never on converge alone — and then **rest there**: the card holds `in-review` with no human
+  tracker action, and no further engine write occurs until the human returns and runs close-out.
+  "Waiting on a human" is simply the card resting in `in-review` between commands.
+- **FR-018**: The engine owns and re-derives all six logical states on every command (one-way, per
+  constitution I). The normal flow never requires a human to edit the tracker, so there is no
+  human-owned status subset to protect.
 - **FR-020**: Human sign-off (via the close-out ceremony, US2) MUST be the path to the terminal
-  "done" state for a feature that has manual tasks: the sync alone MUST NOT advance a card to
-  "done" while unchecked manual tasks remain; close-out's sign-off is what checks them and
-  triggers the final done-sync. (Informed default — see Assumptions.)
+  `done` state: the engine MUST NOT advance a card to `done` on its own while unchecked manual
+  tasks remain; close-out's sign-off — given to the AI in the flow — is what checks them and
+  triggers the AI's final `done` write. The card rests in `in-review` until then.
 
 **Manual / light mode (US5)**
 
-- **FR-021**: The system MUST support a manually-tracked item (an item with no backing `tasks.md`)
-  whose status and content are human-set and never derived or overwritten by the sync.
+- **FR-021**: The system MUST support a manually-tracked item (an item with no backing `tasks.md`):
+  the engine never derives, reads, or overwrites its status or content — whatever a human set on it
+  simply stands, because the engine never touches it (per FR-022).
 - **FR-022**: The sync MUST distinguish manual items from spec-driven feature-cards by **ownership
   via manifest presence** (reusing the 001 mechanism): it only ever touches cards recorded in a
   feature's `.clickup-sync.json` manifest and never re-scans the list. A manual item — like any
@@ -386,15 +529,45 @@ with no ruleset the baked-in defaults are used unchanged.
 - **FR-027**: A proposed ruleset that would violate a constitution principle (e.g. require two-way
   sync) MUST be rejected, not honored.
 
+**Verify command (US8)**
+
+- **FR-033**: The engine MUST provide a `/speckit-verify` command, run after implementation (and
+  after the `after_implement`→converge chain), that in order: (a) recursively reviews the
+  implemented code + tests via the consolidated review module (FR-036); (b) runs the full unit
+  check gate, which MUST pass; (c) runs every automatable E2E as far as the tooling allows (the US1
+  gate, FR-001/002); (d) on success, advances the card to `in-review`.
+- **FR-034**: `/speckit-verify` MUST NOT advance the card to `in-review` if the review surfaces an
+  unresolved issue, the unit gate is red, or a required verification step fails — it stops, reports,
+  and leaves the card at `in-development`. `in-review` is reachable ONLY through a passing verify.
+- **FR-035**: `converge` MUST NOT by itself advance the card past `in-development`; it appends
+  unbuilt work as tasks. Any converge-added work is therefore still subject to `/speckit-verify`
+  before review — the feature cannot reach `in-review` with unbuilt converge work outstanding.
+
+**Consolidate snackbyte lifecycle extensions (US9)**
+
+- **FR-036**: The engine MUST consolidate the five snackbyte-authored lifecycle extensions
+  (`git-specify-branch`, `specify-review-loop`, `analyze-autofix`, `git-commit`, `clickup-sync`)
+  as command-modules of the one engine extension, each preserving its prior behavior. The engine
+  exposes all lifecycle commands plus the tracker-plug interface from a single installed package.
+- **FR-037**: The recursive-review module MUST be a single implementation that reviews either the
+  **spec** (after specify) or the **code + tests** (inside `/speckit-verify`, FR-033) depending on
+  the target it is pointed at — one pattern, two invocation points; the review logic is not
+  duplicated.
+- **FR-038**: The upstream `agent-context` extension (authored by `spec-kit-core`) MUST NOT be
+  absorbed, modified, or broken by the engine — it remains a separate community extension the
+  engine coexists with. Only snackbyte-authored extensions are consolidated.
+- **FR-039**: Migrating other repos off their scattered copies of these extensions onto the engine
+  is OUT OF SCOPE for this feature — the engine is built and proven here first; downstream adoption
+  is follow-on work.
+
 **Cross-cutting invariants (engine + plug / constitution)**
 
 - **FR-028**: The engine core MUST NOT talk to any tracker directly; all tracker I/O MUST go
   through a plug that owns its own transport and auth, shipping no API client and no credentials in
   the repo or config (constitution II). For the ClickUp plug, that transport is the ClickUp MCP
   server; another plug would use its own.
-- **FR-029**: The sync MUST remain one-way (constitution I) except for the explicitly-bounded
-  human-owned-status carve-out (FR-017/018), which is a read-only deferral (the sync declines to
-  write those statuses), NOT a write-back into the repo.
+- **FR-029**: The sync MUST remain one-way (constitution I): repo → tracker, always. The engine
+  never writes back into the repo.
 - **FR-030**: All new deterministic logic (status derivation, item classification, provenance
   formatting, ruleset resolution) MUST live in `scripts/bash/` with `*.test.sh` coverage
   (constitution V); each plug's tracker orchestration stays in its command prompts, validated via
@@ -409,14 +582,14 @@ with no ruleset the baked-in defaults are used unchanged.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Status set / lifecycle mapping**: the ordered set of grouped lifecycle phases (planning →
-  in-development → review → testing → done) and their mapping onto a target list's real statuses,
-  resolved into the manifest's `statusMapping`. The repo owns exactly these mapped statuses; every
-  other status on the list is human-owned (off-limits) by construction (FR-017a). Extends 001's
-  fixed 3-state mapping.
-- **Handoff report**: the end-of-feature artifact summarizing what was verified vs. what remains.
-  Defaults to a committed `specs/<feature>/HANDOFF.md` plus stdout, optionally the ClickUp card
-  body when the ClickUp tracks are active (see Assumptions).
+- **Status set / lifecycle mapping**: the ordered set of at most six logical states (`open` →
+  `in-design` → `ready` → `in-development` → `in-review` → `done`) and their mapping onto a target
+  list's real status names, held in config and resolved into the manifest's `statusMapping`. The
+  engine owns and writes all of these; the mapping degrades to as few as three (FR-015). Extends
+  001's fixed 3-state mapping to six.
+- **Handoff report**: the end-of-feature summary the AI produces (in the flow) of what was verified
+  automatically vs. what remains manual and why. How/whether it is persisted is an implementation
+  detail, not fixed here.
 - **Manual item**: a card with no backing `tasks.md` and human-set status/content. Distinguished
   from spec-driven feature-cards purely by **absence from any feature manifest** (FR-022) — not by
   any marker on the card itself.
@@ -435,15 +608,15 @@ with no ruleset the baked-in defaults are used unchanged.
   no "verified" claim unbacked by evidence.
 - **SC-003**: Close-out never auto-checks a manual task — 100% of manual tasks are checked only
   after explicit human sign-off.
-- **SC-004**: After close-out, the ClickUp card reads done/shipped and the close-out edits are
-  committed in a distinct commit; the sync step made zero commits.
+- **SC-004**: After close-out, the tracker card reads done and the close-out edits are committed in
+  a distinct commit; the sync step made zero commits.
 - **SC-005**: Across a full run of the Spec Kit commands, the card's status advances at each stage
   rather than only at tasks/implement — an observer sees at least one status change per lifecycle
   command that maps to a new state.
 - **SC-006**: A status-only change makes zero content writes (a no-op content re-sync stays a
   no-op) — idempotence is preserved under per-command syncing.
-- **SC-007**: A human-set status in a human-owned state survives every subsequent sync — 0%
-  clobber rate on human-owned statuses.
+- **SC-007**: A feature can be driven from `open` to `in-review` and then to `done` (via close-out
+  sign-off) with **zero** human tracker edits — the AI writes every status.
 - **SC-008**: A manually-tracked item is never overwritten by the sync — 0% clobber rate on manual
   items — while spec-driven cards in the same list are still reconciled.
 - **SC-009**: Commit provenance appears on the card and re-running the sync adds no duplicate
@@ -458,42 +631,51 @@ with no ruleset the baked-in defaults are used unchanged.
 - **SC-013**: The engine produces a correct lifecycle with zero external plugs (local plug only),
   one plug, and many plugs; adding or removing a plug changes only how many trackers are mirrored,
   never the derived lifecycle — an uninstalled plug causes no error.
+- **SC-014**: A card reaches `in-review` only after `/speckit-verify` passes (code review + green
+  unit gate + automatable E2E) — 0% of features reach `in-review` with a red gate or unresolved
+  review findings; `converge` alone never advances past `in-development`.
+- **SC-015**: The engine exposes the five consolidated snackbyte lifecycle modules (branch-setup,
+  recursive review, analyze-autofix, commit checkpoint, ClickUp plug) from one installed package,
+  each matching its former standalone behavior; the recursive-review logic exists once and serves
+  both spec and code targets; the upstream `agent-context` extension is neither absorbed nor broken.
 
 ## Assumptions
 
-- **Independent, prioritized slices**: the six backlog tracks are specified together but remain
-  independently deliverable; §0 (US1–US2) is pure engine and can ship with no external tracker
-  plug at all, and each ClickUp-facing track (US3–US7) builds on the shipped ClickUp plug without
-  revisiting its core mapping.
+- **Independent, prioritized slices**: the user stories are specified together but remain
+  independently deliverable; §0 (US1–US2) and the verify command (US8) are pure engine and can ship
+  with no external tracker plug at all, each ClickUp-facing track (US3–US7) builds on the shipped
+  ClickUp plug without revisiting its core mapping, and consolidation (US9) is the engine's
+  structural foundation.
 - **The ClickUp plug is the proven base**: `001-clickup-sync` (the ClickUp plug) is shipped and
   validated (one-way, MCP-only, idempotent, scaffolding-only); this feature generalizes its model
   into the engine and extends it — it does not re-implement the plug.
-- **Constitution governs**: all six engine principles hold. The one apparent tension — human-owned
-  statuses (US4) vs. one-way (I) — is treated as a read-only deferral (the sync declines to write
-  certain statuses), never a write-back into the repo, so principle I is preserved.
-- **Generic across spun-up apps**: the §0 E2E phase invokes a declared per-app hook/script if
-  present and otherwise records a loud no-op, rather than hardcoding any app's E2E into the
-  template.
-- **Handoff report location** defaults to a committed `specs/<feature>/HANDOFF.md` plus stdout;
-  optionally the ClickUp card body if the ClickUp tracks are active (final choice deferred to
-  planning).
+- **Constitution governs**: all six engine principles hold. The AI is the sole tracker writer in
+  the normal flow (US4); human decisions are inputs to the flow that the AI reflects onto the card,
+  so there is no competing human write-path to reconcile — principle I (one-way) holds cleanly, and
+  the tracker is a read-only mirror for humans.
+- **E2E is best-effort**: the verify phase drives whatever end-to-end testing the AI can automate
+  for the feature at hand and reports the rest as manual — it does not assume a fixed E2E harness.
+- **Handoff report** is produced by the AI in the flow; where (if anywhere) it is persisted is left
+  to implementation, not pinned in this spec.
 - **Non-goals** (from the backlog): no two-way sync of task content back into `tasks.md`; no change
   to 001's core mapping (feature = card, line = checklist item); no app-specific E2E logic baked
   into the template (only the generic hook + per-app extension point).
 - **Split-vs-combined**: the original backlog recommended splitting these tracks into separate
-  feature dirs; per explicit direction this spec intentionally carries all six as one feature,
-  using prioritized user stories to keep them independently deliverable.
-- **Per-command status shape (FR-016 default)**: statuses are grouped lifecycle phases (planning →
-  in-development → review → testing → done), not one distinct state per command, and apply to both
-  the card and its US-subtasks. Chosen because grouped phases map more robustly onto real ClickUp
-  lists (which have ~7 statuses, not one per Spec Kit command) and degrade better on smaller lists.
+  feature dirs; per explicit direction this spec intentionally carries them all as one engine
+  feature, using prioritized user stories to keep them independently deliverable.
+- **Six-state card, three-state subtasks**: the feature-card advances through six logical states
+  (`open` → `in-design` → `ready` → `in-development` → `in-review` → `done`), one per meaningful
+  lifecycle transition, mapped to each project's real status names in config and degradable to a
+  three-state floor. User-story subtasks are units of work and use only not-started / in-progress /
+  done. Chosen so the card's artifact phase is visible as work (design counts) while subtasks stay
+  simple, and so the mapping survives lists with as few as three statuses (FR-012/015/016).
 - **Sign-off and "done" (FR-020 default)**: human sign-off is not a separate gate bolted onto the
   status machine — it is the close-out ceremony (US2), which is the path to "done" for any feature
   with manual tasks. The sync never advances a card to "done" while unchecked manual tasks remain.
 - **Resolved design forks**: the genuine forks (close-out trigger, red-gate failure contract,
-  provenance mechanism, human-owned status set, manual-item discriminator) were decided in the
-  2026-07-11 clarify session — see the `## Clarifications` section. No open clarification markers
-  remain.
+  provenance mechanism, manual-item discriminator, the six-state lifecycle, the `/speckit-verify`
+  handoff, and extension consolidation) were decided across the design sessions — see the
+  `## Clarifications` section. No open clarification markers remain.
 - **Carried-over validation from 001 (SC-007 negative path)**: 001's live validation (T030,
   2026-07-11) exercised every positive scenario plus one-way/idempotence against a real workspace
   but did NOT trigger the provision fail-loud path where a target list cannot represent the logical

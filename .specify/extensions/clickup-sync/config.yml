@@ -7,5 +7,5 @@
 #
 # Provisioning refuses to run while these still hold the placeholder <...> values.
 
-space: "snackbyte-clickup-sync" # ClickUp space the shared list lives in
+space: "snackbyte-speckit-engine" # ClickUp space the shared list lives in
 list: "List" # the one shared list all feature-cards go into

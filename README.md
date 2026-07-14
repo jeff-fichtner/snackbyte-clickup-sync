@@ -1,4 +1,4 @@
-# snackbyte-speckit-engine
+and # snackbyte-speckit-engine
 
 **An engine for [Spec Kit](https://spec-kit.org).** If Spec Kit is a manual transmission — you
 shift every gear yourself (`specify` → `clarify` → `plan` → `tasks` → `implement`) — this is the
@@ -74,7 +74,7 @@ list:  "<your-shared-list-name>"  # the one shared list all feature-cards go int
 
 No IDs or credentials go here — the connected ClickUp MCP server handles auth, and runtime IDs
 live only in each feature's `specs/<feature>/.clickup-sync.json` manifest. In *this* repo the
-config points at the `snackbyte-clickup-sync` ClickUp space; a shippable copy ships the `<your-…>`
+config points at the `snackbyte-speckit-engine` ClickUp space; a shippable copy ships the `<your-…>`
 placeholders.
 
 ## Check gate
