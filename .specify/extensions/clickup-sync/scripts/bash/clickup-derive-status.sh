@@ -1,27 +1,45 @@
 #!/usr/bin/env bash
-# Derive a feature's ClickUp status from observable repo state.
+# Derive a feature's lifecycle status from observable repo state.
 #
-# Pure repo-side logic — no ClickUp, no MCP. The canonical rule (FR-008 / research D4):
-#   - no plan.md yet                          -> not-started
-#   - plan.md exists, not all tasks checked   -> in-progress   (incl. tasks.md with 0 checked)
-#   - tasks.md exists and all tasks checked   -> done
+# Pure repo-side logic — no ClickUp, no MCP. Two modes:
 #
-# Usage:  clickup-derive-status.sh [--dir <feature dir>] [--us <US#>]
-#   --dir  the feature directory (default: active feature via get_feature_paths)
-#   --us   derive the status of a SINGLE user story from its own tasks (FR-009a) instead of
-#          the whole feature. Rule for a story: all its tasks checked -> done; some -> in-progress;
-#          none (or the story has no tasks yet) -> not-started.
+# CARD (six logical states — the engine lifecycle, US3 / contracts/status-model.md):
+#   open           : no spec.md yet (feature just provisioned)
+#   in-design      : spec.md present (specify/clarify/plan)
+#   ready          : tasks.md present (design complete, code not started)
+#   in-development : manifest lifecycle.implementStarted == true (/speckit-implement ran)
+#   in-review      : manifest lifecycle.verifyPassed == true (/speckit-verify passed)
+#   done           : manifest lifecycle.closedOut == true (/speckit-close signed off)
+#   States 1–3 derive purely from artifact presence (idempotent). States 4–6 read recorded
+#   markers from the manifest — because `ready` (tasks written) and `in-development` (implement
+#   run) share the same artifacts (spec+plan+tasks), artifact presence alone cannot distinguish
+#   them, so `implementStarted` is recorded by the after_implement sync. Markers are never
+#   inferred from artifacts; a later command re-derives the same state from the same markers.
 #
-# Output: one of  not-started | in-progress | done  on stdout. Exit 0.
+# SUBTASK (three states — a user story is a unit of work, FR-016; the 001 behavior, unchanged):
+#   not-started | in-progress | done  from that story's own task completion.
+#
+# Usage:  clickup-derive-status.sh [--dir <feature dir>] [--card | --us <US#>] [--manifest <path>]
+#   --dir       feature directory (default: active feature via get_feature_paths)
+#   --card      derive the six-state CARD status (default when neither --card nor --us given)
+#   --us <US#>  derive the three-state status of a single user story from its own tasks
+#   --manifest  path to the feature manifest (default: <dir>/.clickup-sync.json) — read for the
+#               lifecycle markers that gate in-review/done
+#
+# Output: one logical state on stdout. Exit 0.
 set -euo pipefail
 
 DIR=""
 US=""
+MANIFEST=""
+MODE="card"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --dir) DIR="${2:-}"; shift 2 ;;
-        --us) US="${2:-}"; shift 2 ;;
-        --help|-h) sed -n '2,18p' "$0"; exit 0 ;;
+        --us) US="${2:-}"; MODE="us"; shift 2 ;;
+        --card) MODE="card"; shift ;;
+        --manifest) MANIFEST="${2:-}"; shift 2 ;;
+        --help|-h) sed -n '2,24p' "$0"; exit 0 ;;
         *) shift ;;
     esac
 done
@@ -38,14 +56,14 @@ if [[ -z "$DIR" ]]; then
     DIR="${FEATURE_DIR:-}"
 fi
 
+SPEC="$DIR/spec.md"
 PLAN="$DIR/plan.md"
 TASKS="$DIR/tasks.md"
+[[ -z "$MANIFEST" ]] && MANIFEST="$DIR/.clickup-sync.json"
 
-# --us: per-user-story status from that story's own task completion (FR-009a).
-# Uses the parse-tasks helper so grouping (explicit [US#] + phase-heading fallback) matches sync.
-if [[ -n "$US" ]]; then
+# --- SUBTASK mode: per-user-story three-state status (FR-016; the 001 rule, unchanged) ---
+if [[ "$MODE" == "us" ]]; then
     if [[ ! -f "$TASKS" ]] || ! has_jq; then
-        # No tasks yet (or no jq to read groups) → the story hasn't started.
         echo "not-started"; exit 0
     fi
     counts="$(bash "$SCRIPT_DIR/clickup-parse-tasks.sh" --file "$TASKS" \
@@ -59,24 +77,38 @@ if [[ -n "$US" ]]; then
     exit 0
 fi
 
-# No plan yet → not-started (spec may or may not exist; caller only syncs when spec exists).
-if [[ ! -f "$PLAN" ]]; then
-    echo "not-started"
-    exit 0
-fi
+# --- CARD mode: the six-state engine lifecycle ---
 
-# Count task checkboxes in tasks.md (T-lines only, matching the tasks.md convention).
-total=0; checked=0
+# Read a lifecycle marker from the manifest (true/false). Empty/absent manifest → false.
+manifest_flag() {
+    local key="$1"
+    [[ -f "$MANIFEST" ]] || { echo "false"; return; }
+    if has_jq; then
+        jq -r --arg k "$key" '(.lifecycle[$k]) // false' "$MANIFEST" 2>/dev/null || echo "false"
+    else
+        # no-jq fallback: grep the flat "key": true|false out of the lifecycle block
+        grep -oE "\"$key\"[[:space:]]*:[[:space:]]*(true|false)" "$MANIFEST" 2>/dev/null \
+            | grep -oE 'true|false' | head -1 || echo "false"
+    fi
+}
+
+# States 4–6 first (recorded markers win over artifact-derived states once set, and later
+# markers win over earlier ones: closedOut > verifyPassed > implementStarted).
+if [[ "$(manifest_flag closedOut)" == "true" ]]; then echo "done"; exit 0; fi
+if [[ "$(manifest_flag verifyPassed)" == "true" ]]; then echo "in-review"; exit 0; fi
+if [[ "$(manifest_flag implementStarted)" == "true" ]]; then echo "in-development"; exit 0; fi
+
+# States 1–3 from artifact presence.
+if [[ ! -f "$SPEC" ]]; then echo "open"; exit 0; fi          # provisioned, no spec yet
+
+# Distinguish in-design (no tasks yet) from ready (tasks written, design complete).
+task_lines=0
 if [[ -f "$TASKS" ]]; then
-    total="$(grep -cE '^[[:space:]]*-[[:space:]]*\[[ xX]\][[:space:]]*T[0-9]{3}' "$TASKS" || true)"
-    checked="$(grep -cE '^[[:space:]]*-[[:space:]]*\[[xX]\][[:space:]]*T[0-9]{3}' "$TASKS" || true)"
+    task_lines="$(grep -cE '^[[:space:]]*-[[:space:]]*\[[ xX]\][[:space:]]*T[0-9]{3}' "$TASKS" || true)"
 fi
 
-# plan.md present but no tasks yet, or tasks not all done → in-progress.
-if [[ "$total" -eq 0 || "$checked" -lt "$total" ]]; then
-    echo "in-progress"
-    exit 0
+if [[ ! -f "$TASKS" || "$task_lines" -eq 0 ]]; then
+    echo "in-design"; exit 0                                  # spec present, no tasks yet
 fi
 
-# tasks.md exists and every task is checked → done.
-echo "done"
+echo "ready"                                                 # tasks written → ready (until implement runs)
