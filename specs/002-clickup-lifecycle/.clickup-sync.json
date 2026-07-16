@@ -14,7 +14,7 @@
   },
   "card": {
     "id": "86baz16qu",
-    "hash": "sha256:43c687d7837d40e6f815fd33905e717bb92a058df21e2a8307ee8189b8d88e45",
+    "hash": "sha256:9a7b5c88ec98fc72ca92c60f28d14336e8f5652e46a27711a17eedcb1c5ae607",
     "provenanceHash": "sha256:d646872b708eb655542fa6c6344d9b2150dac97a9dadd14d4538aad2a5fdf075"
   },
   "userStories": [
@@ -91,6 +91,7 @@
     }
   ],
   "lifecycle": {
-    "verifyPassed": true
+    "verifyPassed": true,
+    "closedOut": true
   }
 }
