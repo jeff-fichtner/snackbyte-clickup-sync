@@ -25,14 +25,21 @@ dependency edges from the spec's story order (from 001, unchanged).
 | 1 | `open` | feature provisioned, before specify | no `spec.md` yet |
 | 2 | `in-design` | after specify / clarify / plan | `spec.md` present |
 | 3 | `ready` | after tasks / analyze | `tasks.md` present (design complete) |
-| 4 | `in-development` | after implement (and converge) | implement run; converge stays here |
-| 5 | `in-review` | `/speckit-verify` passes | recorded verify-pass marker |
-| 6 | `done` | `/speckit-close` + sign-off | recorded close/sign-off marker |
+| 4 | `in-development` | after implement (and converge) | recorded `implementStarted` marker |
+| 5 | `in-review` | `/speckit-verify` passes | recorded `verifyPassed` marker |
+| 6 | `done` | `/speckit-close` + sign-off | recorded `closedOut` marker |
 
 **Transitions**: strictly forward in the normal flow; the engine re-derives on every command. States
-1–4 derive from artifact presence (idempotent). States 5–6 require a recorded marker (verify-passed,
-signed-off) because artifact presence alone can't distinguish them — the marker is set by the
-verify/close commands, never inferred.
+1–3 derive from artifact presence (idempotent). States **4–6 require a recorded marker** — set by
+the after_implement sync (`implementStarted`), `/speckit-verify` (`verifyPassed`), and
+`/speckit-close` (`closedOut`) respectively, never inferred.
+
+> **Why state 4 needs a marker** (found during implementation): `ready` (tasks written) and
+> `in-development` (implement run) have the **same artifacts** — spec + plan + tasks all present —
+> so artifact presence alone cannot distinguish them. Rather than guess from checkbox counts (which
+> misfires: a feature can have all-unchecked tasks in both states), the after_implement sync records
+> `implementStarted`, consistent with how states 5–6 already work. Markers are read, never inferred,
+> so re-deriving from the same repo+markers always yields the same state (idempotence preserved).
 
 ### Status mapping (logical → actual, with 3-fallback)
 The six logical states mapped to a list's real status names, held in `config.yml` and resolved into
@@ -63,7 +70,8 @@ honors it when present, else uses defaults unchanged.
     "in-review": "in review",
     "done": "shipped"
   },
-  "lifecycle": {                             // NEW — the recorded markers for states 5–6
+  "lifecycle": {                             // NEW — the recorded markers for states 4–6
+    "implementStarted": false,               // set true by the after_implement sync
     "verifyPassed": false,                   // set true by /speckit-verify on pass
     "closedOut": false                       // set true by /speckit-close on sign-off
   },

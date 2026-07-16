@@ -38,9 +38,9 @@ under `.specify/extensions/`, `.claude/skills/`, and `.specify/extensions.yml` (
 
 **Purpose**: Confirm the package baseline before extending it.
 
-- [ ] T001 Verify the check gate is green (`npm run check:all`) and the existing ClickUp plug
+- [X] T001 Verify the check gate is green (`npm run check:all`) and the existing ClickUp plug
       helpers pass, establishing the baseline this feature extends
-- [ ] T002 [P] Add the six-state + provenance fields to the config/manifest **example** docs by
+- [X] T002 [P] Add the six-state + provenance fields to the config/manifest **example** docs by
       reconciling `.specify/extensions/clickup-sync/config.yml` comments with
       `specs/002-clickup-lifecycle/data-model.md` (no logic yet — placeholders + comments only)
 
@@ -57,40 +57,40 @@ every ClickUp-facing story.
 
 ### US9 consolidation (structural foundation)
 
-- [ ] T003 [US9] Co-locate the four snackbyte modules into this repo by copying
+- [X] T003 [US9] Co-locate the four snackbyte modules into this repo by copying
       `git-specify-branch/`, `specify-review-loop/`, `analyze-autofix/`, `git-commit/` from
       `snackbyte-base/.specify/extensions/` into `.specify/extensions/` (clickup-sync already present),
       preserving each package's shape per contracts/engine-modules.md
-- [ ] T004 [US9] Register all five modules + their hook rows in `.specify/extensions.yml`
+- [X] T004 [US9] Register all five modules + their hook rows in `.specify/extensions.yml`
       (before_specify → git-specify-branch; after_specify → specify-review-loop; after_analyze →
       analyze-autofix; before_implement → git-commit; plus the existing clickup-sync rows), matching
       the canonical schema (enabled/optional/priority/prompt/condition)
-- [ ] T005 [US9] Generalize the review module: edit
+- [X] T005 [US9] Generalize the review module: edit
       `.specify/extensions/specify-review-loop/commands/speckit.specify.review-loop.md` to take a
       **target** (`spec` | `code`) per FR-037 / contracts/engine-modules.md — one recursive-review
       pattern, branch on target for what it reads and what "fixable" means
-- [ ] T006 [US9] Confirm `agent-context` is NOT copied/absorbed and the engine coexists with it
+- [X] T006 [US9] Confirm `agent-context` is NOT copied/absorbed and the engine coexists with it
       (FR-038); document the exclusion in `.specify/README.md`
 
 ### Shared deterministic helpers (used by US3 and downstream)
 
-- [ ] T007 [P] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh` to
+- [X] T007 [P] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh` to
       emit the six card-level logical states (open/in-design/ready/in-development/in-review/done)
       from artifact presence + triggering command + manifest `lifecycle` markers, keeping subtasks
       three-state (per contracts/status-model.md, research Decision 3)
-- [ ] T008 [P] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.sh` —
+- [X] T008 [P] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.sh` —
       logical→actual status mapping from config + the deterministic 3-fallback collapse
       (nearest-status), per FR-015 / research Decision 4
-- [ ] T009 [US9] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh` for the
+- [X] T009 [US9] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh` for the
       additive fields (`lifecycle.verifyPassed`/`closedOut`, `card.provenanceHash`, six-state
       `statusMapping`) per data-model.md, keeping `schemaVersion` "1" and all changes additive
-- [ ] T010 [P] Test `clickup-derive-status.sh` six-state derivation in
+- [X] T010 [P] Test `clickup-derive-status.sh` six-state derivation in
       `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.test.sh` (each state's
       trigger condition; subtasks stay three-state; markers gate states 5–6)
-- [ ] T011 [P] Test `clickup-status-map.sh` in
+- [X] T011 [P] Test `clickup-status-map.sh` in
       `.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.test.sh` (full six-status
       map; degenerate three-status list collapses correctly; reports degradation)
-- [ ] T012 [P] Test the manifest extensions in
+- [X] T012 [P] Test the manifest extensions in
       `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.test.sh` (lifecycle markers
       round-trip, provenanceHash, six-state mapping, no clobber of existing fields, no-jq fallback)
 
@@ -108,16 +108,16 @@ advancing through the six logical states — making the artifact phase visible a
 in-design → ready → in-development; a status-only change makes zero content writes; a 3-status list
 degrades cleanly (quickstart Scenarios 1, 2).
 
-- [ ] T013 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md`
+- [X] T013 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md`
       to create the card in `open` at provision (FR-013a) and resolve/record the six-state
       `statusMapping` (via `clickup-status-map.sh`), writing the `statuses:` config block
-- [ ] T014 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md` to set
+- [X] T014 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md` to set
       the card's six-state status from `clickup-derive-status.sh` + `clickup-status-map.sh` on every
       run, and subtasks' three-state status; only write status when it changed (FR-013/014)
-- [ ] T015 [US3] Wire the new sync hooks in `.specify/extensions.yml`: `after_specify` (→in-design),
+- [X] T015 [US3] Wire the new sync hooks in `.specify/extensions.yml`: `after_specify` (→in-design),
       `after_analyze` (→ready), `after_converge` (→stays in-development), alongside existing
       after_plan/after_tasks/after_implement (FR-013b, research Decision 5)
-- [ ] T016 [US3] In sync, implement the config'd logical→actual mapping + 3-fallback path end to end
+- [X] T016 [US3] In sync, implement the config'd logical→actual mapping + 3-fallback path end to end
       (call `clickup-status-map.sh`, report degradation) so a reduced-status list never fails (FR-015)
 
 **Checkpoint**: MVP — the card moves on every command through the six states, config-mapped and
@@ -137,11 +137,11 @@ automatable, and produce the honest verified-vs-manual report. This is the capab
 **Independent Test**: Green feature → gate + E2E run, report lists verified/manual with evidence;
 red gate → fails loud, no "verified" handoff (quickstart 3, US1 scenarios).
 
-- [ ] T024 [US1] Implement the check-gate + automatable-E2E logic that verify/close call: run the
+- [X] T024 [US1] Implement the check-gate + automatable-E2E logic that verify/close call: run the
       project gate (`npm run check:all` or equivalent), drive whatever E2E the AI can automate for
       the feature at hand, capture evidence and the un-automatable remainder with reasons
       (FR-001/002/003). Lands as a helper/prompt the command steps invoke.
-- [ ] T025 [US1] Implement the handoff report content (feature summary + location, verified-with-
+- [X] T025 [US1] Implement the handoff report content (feature summary + location, verified-with-
       evidence vs. remaining-manual-and-why, follow-ups, exact manual steps) per FR-004, produced in
       the flow and reused by verify and close — no committed HANDOFF file.
 
@@ -158,18 +158,18 @@ and only on success advances the card to `in-review`.
 **Independent Test**: On a green feature, `/speckit-verify` → review + gate + E2E → `in-review`; on
 a red gate or unresolved finding, it stops and the card stays `in-development` (quickstart 3).
 
-- [ ] T017 [US8] Write `.specify/extensions/clickup-sync/commands/speckit.verify.md` implementing
+- [X] T017 [US8] Write `.specify/extensions/clickup-sync/commands/speckit.verify.md` implementing
       contracts/verify.command.md: step 1 recursive code review (invoke the review module with
       `target: code`, T005), step 2 full unit gate (invoke the US1 capability T024, must pass), step
       3 automatable E2E (best-effort, report the rest), step 4 on pass set `lifecycle.verifyPassed`
       + sync to `in-review`
-- [ ] T018 [US8] In verify, enforce the fail-stops: a red gate or unresolved review finding leaves
+- [X] T018 [US8] In verify, enforce the fail-stops: a red gate or unresolved review finding leaves
       the card at `in-development` and never sets `verifyPassed` (FR-034); converge-added work is
       still gated by verify (FR-035)
-- [ ] T019 [US8] In verify, emit the handoff report by invoking the US1 handoff capability (T025)
+- [X] T019 [US8] In verify, emit the handoff report by invoking the US1 handoff capability (T025)
       — verified-automatically vs. remaining-manual with evidence, in the flow (FR-004), no
       committed HANDOFF file
-- [ ] T020 [P] [US8] Create the skill mirror `.claude/skills/speckit-verify/SKILL.md` pointing at
+- [X] T020 [P] [US8] Create the skill mirror `.claude/skills/speckit-verify/SKILL.md` pointing at
       the verify command
 
 **Checkpoint**: `in-review` is reachable only through a passing verify (quickstart 3, SC-014).
@@ -184,14 +184,14 @@ sign-off → mark done → final sync → commit → `done`.
 **Independent Test**: From `in-review`, `/speckit-close` surfaces manual tasks and waits; on sign-off
 it checks them, syncs to `done`, and commits — sync itself never commits (quickstart 4).
 
-- [ ] T021 [US2] Write `.specify/extensions/clickup-sync/commands/speckit.close.md` implementing
+- [X] T021 [US2] Write `.specify/extensions/clickup-sync/commands/speckit.close.md` implementing
       contracts/close.command.md: re-run gate (red→refuse, FR-010a), confirm non-manual complete
       (FR-010), surface manual tasks + wait for sign-off (never auto-check, FR-007)
-- [ ] T022 [US2] In close, on sign-off: mark manual tasks done in `tasks.md`, set
+- [X] T022 [US2] In close, on sign-off: mark manual tasks done in `tasks.md`, set
       `lifecycle.closedOut`, run the final sync to `done`/shipped (FR-008), then commit the close-out
       edits as a distinct commit reusing the `git-commit` module — the sync itself makes no commit
       (FR-009)
-- [ ] T023 [P] [US2] Create the skill mirror `.claude/skills/speckit-close/SKILL.md` pointing at the
+- [X] T023 [P] [US2] Create the skill mirror `.claude/skills/speckit-close/SKILL.md` pointing at the
       close command
 
 **Checkpoint**: Full lifecycle open→…→done runs end to end (quickstart 4, 5; SC-003/004/012).
@@ -206,10 +206,10 @@ never the tracker. `in-review` rests until close-out.
 **Independent Test**: Drive a feature to `done` with zero human tracker edits — the AI writes every
 status (quickstart 5, SC-007).
 
-- [ ] T026 [US4] Audit the sync/verify/close prompts to guarantee the engine writes all six logical
+- [X] T026 [US4] Audit the sync/verify/close prompts to guarantee the engine writes all six logical
       states one-way and never reads tracker state back into the repo (FR-017/019/029); document in
       speckit.clickup.sync.md that the tracker is a read-only mirror for humans
-- [ ] T027 [US4] Ensure `in-review` is set by verify and then rests (no further engine write until
+- [X] T027 [US4] Ensure `in-review` is set by verify and then rests (no further engine write until
       close-out runs), and `done` only after sign-off (FR-017a/020)
 
 **Checkpoint**: Zero-human-edit path verified (quickstart 5).
@@ -224,7 +224,7 @@ overwritten.
 **Independent Test**: A hand-made card not in any manifest is untouched by sync; spec-driven cards
 in the same list are still reconciled (quickstart 6, SC-008).
 
-- [ ] T028 [US5] Confirm + document in speckit.clickup.sync.md that the sync only ever touches
+- [X] T028 [US5] Confirm + document in speckit.clickup.sync.md that the sync only ever touches
       manifest-recorded cards (reusing the 001 ownership mechanism, FR-022) — a manual item is never
       in a manifest, so no new marker/logic is needed; add a quickstart check for a hand-made card
 
@@ -239,12 +239,12 @@ in the same list are still reconciled (quickstart 6, SC-008).
 **Independent Test**: After commits exist, provenance appears on the card; re-run adds no duplicates
 (quickstart 7, SC-009).
 
-- [ ] T029 [P] [US6] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh` —
+- [X] T029 [P] [US6] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh` —
       render the feature's git log into a canonical, hash-deduped block (research Decision 6)
-- [ ] T030 [P] [US6] Test `clickup-provenance.sh` in
+- [X] T030 [P] [US6] Test `clickup-provenance.sh` in
       `.specify/extensions/clickup-sync/scripts/bash/clickup-provenance.test.sh` (stable hash for
       same commits; different commits differ; empty history handled)
-- [ ] T031 [US6] In sync, push provenance to the card via MCP (comment/body section), deduped by
+- [X] T031 [US6] In sync, push provenance to the card via MCP (comment/body section), deduped by
       `card.provenanceHash`, staying one-way. Route provenance through a single mode-check
       (`provenance-mode`: A default) so Option B (native GitHub) tacks on later as the other branch
       without reworking A — build only A now; document B as the opt-in that stands A down
@@ -262,13 +262,13 @@ approved rules are honored, else baked-in defaults apply.
 **Independent Test**: Run the design step → proposed ruleset for approval; approved → sync honors it;
 none → defaults unchanged (spec US7).
 
-- [ ] T032 [US7] Write a design-rules command prompt
+- [X] T032 [US7] Write a design-rules command prompt
       `.specify/extensions/clickup-sync/commands/speckit.clickup.design-rules.md`: inspect the real
       space/list/statuses/custom-fields (via ClickUp MCP read tools) and **propose** a ruleset for
       explicit approval — never silently apply board-reshaping changes (FR-025)
-- [ ] T033 [US7] In sync + config, honor an approved ruleset when present and fall back to baked-in
+- [X] T033 [US7] In sync + config, honor an approved ruleset when present and fall back to baked-in
       defaults when absent; reject a ruleset that would violate a constitution principle (FR-026/027)
-- [ ] T034 [P] [US7] Create the skill mirror `.claude/skills/speckit-clickup-design-rules/SKILL.md`
+- [X] T034 [P] [US7] Create the skill mirror `.claude/skills/speckit-clickup-design-rules/SKILL.md`
 
 **Checkpoint**: Opt-in per-project rules; defaults untouched without them.
 
@@ -278,18 +278,18 @@ none → defaults unchanged (spec US7).
 
 **Purpose**: Finalize docs, plug seam, and full validation.
 
-- [ ] T035 [P] Document the tracker-plug interface seam (resolve-target / create-update-item /
+- [X] T035 [P] Document the tracker-plug interface seam (resolve-target / create-update-item /
       set-checklist / link-dependency / update-status / attach-provenance) in
       `.specify/extensions/clickup-sync/README.md`, noting the local/multi-plug realization is
       deferred (research Decision 7 / FR-032)
-- [ ] T036 [P] Update `.claude/skills/` mirrors and each module README to reflect the consolidated
+- [X] T036 [P] Update `.claude/skills/` mirrors and each module README to reflect the consolidated
       engine (US9) and the new commands
-- [ ] T037 Run `npm run check:all` and fix any formatting/shell issues so the gate is green
+- [X] T037 Run `npm run check:all` and fix any formatting/shell issues so the gate is green
 - [ ] T038 **(manual — requires a live ClickUp workspace via MCP; not runnable headlessly)** Walk
       quickstart.md Scenarios 1–9 against a real ClickUp workspace and record results; explicitly
       exercise the SC-007 provision fail-loud negative path with a purpose-built degenerate list
       (carried over from 001)
-- [ ] T039 [P] Confirm scaffolding-only (Constitution IV) by grep: no tracker refs leak into shipped
+- [X] T039 [P] Confirm scaffolding-only (Constitution IV) by grep: no tracker refs leak into shipped
       app source/docs/CI (only `.specify/`, `.claude/`, per-feature manifests carry them)
 
 ---

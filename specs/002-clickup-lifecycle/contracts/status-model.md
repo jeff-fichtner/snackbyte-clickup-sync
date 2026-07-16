@@ -11,9 +11,12 @@ open → in-design → ready → in-development → in-review → done
 | `open` | no `spec.md` (feature just provisioned) | provision (card born here, FR-013a) |
 | `in-design` | `spec.md` present | after_specify / clarify / plan sync |
 | `ready` | `tasks.md` present | after_tasks / after_analyze sync |
-| `in-development` | implement run | after_implement sync; after_converge stays here |
+| `in-development` | `lifecycle.implementStarted == true` | after_implement sync (records the marker); after_converge stays here |
 | `in-review` | `lifecycle.verifyPassed == true` | `/speckit-verify` on pass |
 | `done` | `lifecycle.closedOut == true` | `/speckit-close` on sign-off |
+
+> `ready` and `in-development` share the same artifacts (spec+plan+tasks), so state 4 is gated by a
+> recorded `implementStarted` marker rather than artifact presence — see data-model.md.
 
 Subtasks use **three** states only (not-started / in-progress / done) from their own task
 completion — never the design/ready/review states (FR-016).
@@ -41,7 +44,8 @@ Every command runs a sync (content and/or status). A command that changes nothin
   (`clickup-status-map.sh`). The sync reports the degradation rather than failing.
 
 ## Derivation contract (`clickup-derive-status.sh`, extended)
-- Input: feature dir + triggering command (+ manifest `lifecycle` markers for states 5–6).
+- Input: feature dir + triggering command (+ manifest `lifecycle` markers for states 4–6).
 - Output: one of the six logical states (card) or three (subtask, via `--us`).
-- Pure, idempotent for states 1–4 (re-running the same repo state yields the same state);
-  states 5–6 read the recorded markers. No time/random in hashed input.
+- Pure, idempotent for states 1–3 (re-running the same repo state yields the same state);
+  states 4–6 read the recorded markers (also idempotent — same repo + same markers → same state).
+  No time/random in hashed input.

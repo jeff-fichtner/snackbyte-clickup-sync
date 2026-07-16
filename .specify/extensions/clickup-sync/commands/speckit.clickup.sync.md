@@ -6,9 +6,21 @@ description: "Make the active feature's ClickUp card (body, US-subtasks, checkli
 
 Make the feature's ClickUp representation match the committed repo: one feature-card in the
 shared list, a subtask per user story (with dependency links and a markdown checkbox list of
-its task lines), a verbose description body, and a derived status. **One-way** (repo →
-ClickUp), **idempotent** (a no-op run makes zero ClickUp writes), **MCP-only**. The card
-materializes as soon as `spec.md` exists and is enriched on every run.
+its task lines), a verbose description body, and a **six-state lifecycle status**. **One-way**
+(repo → ClickUp), **idempotent** (a no-op run makes zero ClickUp writes), **MCP-only**. The card
+is created in `open` at provision and re-synced on **every** Spec Kit command — writing the
+artifacts (spec, plan, tasks) is visible as work, not just implementation.
+
+**The AI is the sole writer** of the card in the normal flow (US4): every status/content write
+comes from a Spec Kit command or close-out. Humans never need to touch the tracker; it is a
+read-only mirror for them.
+
+**Which command called this sync** determines the target lifecycle state (the hook wiring in
+`.specify/extensions.yml` passes the moment). The command→state mapping (contracts/status-model.md):
+`after_specify`/`clarify`/`plan` → `in-design`; `after_tasks`/`after_analyze` → `ready`;
+`after_implement` → `in-development` (also **set the `implementStarted` marker**, below);
+`after_converge` → stays `in-development`. `/speckit-verify` (→ `in-review`) and `/speckit-close`
+(→ `done`) set their own markers and call this sync themselves.
 
 ## Preconditions
 
@@ -28,13 +40,23 @@ materializes as soon as `spec.md` exists and is enriched on every run.
 
 ## Derive (repo-side, no MCP)
 
-Run the helpers to compute the desired state:
+First, **if this sync was triggered by `after_implement`**, record the implement marker so the
+card can derive `in-development` (artifact presence alone can't distinguish `ready` from
+`in-development` — see contracts/status-model.md):
+
+```bash
+.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh set-lifecycle --key implementStarted --value true
+```
+
+Then run the helpers to compute the desired state:
 
 ```bash
 # US-grouped task lines with done-state (empty groups if no tasks.md yet):
 .specify/extensions/clickup-sync/scripts/bash/clickup-parse-tasks.sh
-# Derived status (not-started | in-progress | done):
-.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh
+# Six-state CARD status (open|in-design|ready|in-development|in-review|done):
+.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh --card
+# Map a logical state to this list's actual status name (handles the 3-state fallback):
+.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.sh resolve --logical <state> --map "$(clickup-manifest.sh get statusMapping)"
 ```
 
 Then compute each element's desired content:
@@ -48,12 +70,14 @@ Then compute each element's desired content:
   the **feature-card's own** description, not a subtask.
 - **US dependency edges**: from the **spec's user-story numbering/priority order** (US2
   waits_on US1, US3 waits_on US1+US2, …) — NOT tasks.md phase order.
-- **Card status**: the feature-wide derived value (`clickup-derive-status.sh` over the whole
-  feature), written via `statusMapping`.
-- **Per-US-subtask status**: EACH US-subtask also gets its own status, from that story's own
-  task completion — `clickup-derive-status.sh --us <US#>` (all its tasks checked → done; some →
-  in-progress; none → not-started) — mapped via `statusMapping` and re-computed every run
-  (FR-009a). A subtask's status reflects its own progress, not the card's.
+- **Card status**: the feature-wide six-state value (`clickup-derive-status.sh --card`), mapped
+  to the list's actual status name via `clickup-status-map.sh resolve` against `statusMapping`
+  (this also applies the 3-state fallback for reduced lists — report the degradation once).
+- **Per-US-subtask status**: EACH US-subtask gets its own **three-state** status (a subtask is a
+  unit of work, FR-016), from that story's own task completion — `clickup-derive-status.sh --us
+  <US#>` (all its tasks checked → done; some → in-progress; none → not-started) — mapped via
+  `clickup-status-map.sh` (the floor buckets) and re-computed every run. A subtask never carries
+  the design/ready/review states — those are feature-level.
 
 Hash each element with a **canonical, reproducible serialization** (hash the derived repo-side
 data, NOT the rendered ClickUp prose — so any future run recomputes the identical hash and a
@@ -96,6 +120,20 @@ ClickUp to an owned element is reverted on the next sync (never merged back into
    for edges no longer implied. No stale links remain.
 4. **Status**: set the card's feature-wide status and each US-subtask's own per-story status via
    `clickup_update_task` using `statusMapping`; only write an element whose mapped status changed.
+5. **Commit provenance (US6)** — attach the feature's commits to the card, deduped:
+   - Route through a single **provenance-mode** check (config `provenance-mode`, default `A`) so
+     Option B (ClickUp's native GitHub integration) can tack on later as the other branch without
+     reworking A. Only Option A is built now; when `provenance-mode: B` is opted in, A stands down
+     entirely (no double-posting — FR-024a).
+   - **Option A**: render + hash the block:
+     ```bash
+     .specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh render --feature <feature>
+     .specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh hash --feature <feature>
+     ```
+     If the hash differs from the manifest's `card.provenanceHash`, push the block to the card via
+     MCP (a comment or a body section) and record the new hash with
+     `clickup-manifest.sh set-provenance-hash --hash <h>`. If the hash is unchanged, **skip** — no
+     duplicate links (SC-009). One-way, like everything else.
 
 ## Progressive materialization & edge cases
 
@@ -107,8 +145,11 @@ ClickUp to an owned element is reverted on the next sync (never merged back into
 - **User story removed / renumbered** (a manifest US with no matching story now): **v1 default —
   report it in the run summary and leave the orphaned US-subtask in place (do NOT delete)**;
   re-point dependency edges so nothing dangles.
-- **Shared list holds unrelated cards**: only ever touch cards/subtasks recorded in this
-  feature's manifest; never modify or count anything else in the list.
+- **Shared list holds unrelated or MANUAL cards (US5)**: only ever touch cards/subtasks recorded
+  in this feature's manifest; never modify or count anything else in the list. A **manual item**
+  (a hand-made card with no backing `tasks.md`, tracked by a human) is simply never in any
+  feature manifest, so it is never derived, overwritten, or counted — safe by construction, no
+  marker needed.
 
 ## Report
 
@@ -119,6 +160,8 @@ checkbox items added/flipped/removed; dependencies set/removed; status set.
 
 - Never modifies `tasks.md` or any repo artifact based on ClickUp state (one-way).
 - Never deletes a whole tracked feature-card for a removed feature (v1).
-- Never sets lifecycle/human statuses beyond not-started / in-progress / done (deferred to the
-  backlog feature).
+- Never sets `in-review` or `done` from a sync alone — those states come only from
+  `/speckit-verify` (marker `verifyPassed`) and `/speckit-close` (marker `closedOut`). A plain
+  sync derives at most `in-development`.
+- Never requires a human to touch the tracker; the AI writes every state.
 - Never re-scans the whole list for dedup — the manifest is the index.

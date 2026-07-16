@@ -7,16 +7,23 @@ drives the generic lifecycle, this plug turns those lifecycle events into real C
 **The tracker interface a plug implements** (what the engine asks any plug to do):
 
 - **resolve-target / status-mapping** — find-or-create the tracker's container and map the engine's
-  logical states onto the tracker's real statuses (here: provision the ClickUp space + shared list,
-  map `not-started`/`in-progress`/`done` onto the list's statuses).
+  **six logical states** (`open · in-design · ready · in-development · in-review · done`) onto the
+  tracker's real statuses (here: provision the ClickUp space + shared list, map the six onto the
+  list's statuses, falling back to three where a list can't express six).
 - **create/update item** — materialize a feature and its user stories as tracker items.
 - **set-checklist** — render the feature's `tasks.md` lines onto the item.
 - **link-dependency** — reflect user-story dependencies.
-- **update-status** — write the derived lifecycle state.
-- **attach-provenance** — (future) link the commits/PRs that shipped the feature.
+- **update-status** — write the derived lifecycle state (card: six states; subtasks: three).
+- **attach-provenance** — link the commits that shipped the feature (Option A, hash-deduped).
 
 Another plug (Linear, a local file, …) implements the same interface its own way; the engine does
 not change. This plug's implementation follows.
+
+> **Seam, not machinery (research Decision 7).** The interface above is the boundary that lets a
+> second plug slot in. The engine's **local plug** (zero-tracker file mode) and **multi-plug
+> broadcasting** are specified (FR-032/SC-013) but deliberately **not built** — ClickUp is the one
+> concrete plug today. An uninstalled/disabled plug is a silent no-op, not an error
+> (Constitution VI), so adding a plug later is additive, never a rework.
 
 ---
 
