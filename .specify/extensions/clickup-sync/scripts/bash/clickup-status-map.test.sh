@@ -43,6 +43,17 @@ r="$(bash "$MAP" resolve --logical bogus --map "$THREE")"; [[ "$r" == "todo" ]] 
 # ---- edge: bad usage exits non-zero ----
 if bash "$MAP" resolve --logical open >/dev/null 2>&1; then bad "missing --map should fail" "exit0"; else ok "missing --map → non-zero exit"; fi
 
+# ---- no-jq fallback (Constitution: the documented fallback must keep working) ----
+# CLICKUP_NO_JQ=1 forces the grep branch even on a machine that has jq installed.
+r="$(CLICKUP_NO_JQ=1 bash "$MAP" resolve --logical in-review --map "$SIX")"
+[[ "$r" == "in review" ]] && ok "no-jq: six-state resolve via grep fallback" || bad "nojq-six" "$r"
+r="$(CLICKUP_NO_JQ=1 bash "$MAP" resolve --logical done --map "$SIX")"
+[[ "$r" == "shipped" ]] && ok "no-jq: done resolve via grep fallback" || bad "nojq-done" "$r"
+r="$(CLICKUP_NO_JQ=1 bash "$MAP" resolve --logical in-design --map "$THREE")"
+[[ "$r" == "todo" ]] && ok "no-jq: 3-state collapse via grep fallback" || bad "nojq-three" "$r"
+r="$(CLICKUP_NO_JQ=1 bash "$MAP" degraded --map "$THREE")"
+[[ "$r" == "true" ]] && ok "no-jq: degraded detection via grep fallback" || bad "nojq-deg" "$r"
+
 n="$(wc -l < "$FAIL_F" | tr -d "[:space:]")"; n="${n:-0}"
 echo ""
 if [[ "$n" -eq 0 ]]; then echo "status-map: ALL PASS"; else echo "status-map: $n FAIL"; exit 1; fi

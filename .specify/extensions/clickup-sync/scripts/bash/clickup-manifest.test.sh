@@ -78,6 +78,11 @@ bash "$M" set-provenance-hash --dir "$D" --hash sha256:provh
 [[ "$(jq -r '.card.provenanceHash' "$D/.clickup-sync.json")" == "sha256:provh" ]] && ok "provenanceHash set" || bad "prov-set" "fail"
 [[ "$(jq -r '.card.id' "$D/.clickup-sync.json")" == "CARD1" ]] && ok "provenanceHash preserves card.id" || bad "prov-cardid" "clobbered"
 
+# set-card must MERGE, not replace — a later status/body change must not drop provenanceHash
+bash "$M" set-card --dir "$D" --id CARD1 --hash sha256:newhash
+[[ "$(jq -r '.card.provenanceHash' "$D/.clickup-sync.json")" == "sha256:provh" ]] && ok "set-card preserves provenanceHash" || bad "setcard-merge" "provenanceHash dropped"
+[[ "$(jq -r '.card.hash' "$D/.clickup-sync.json")" == "sha256:newhash" ]] && ok "set-card still updates hash" || bad "setcard-hash" "not updated"
+
 # --- schemaVersion stays "1" after all additive writes ---
 [[ "$(jq -r '.schemaVersion' "$D/.clickup-sync.json")" == "1" ]] && ok "schemaVersion stays 1 (additive)" || bad "schema" "bumped"
 

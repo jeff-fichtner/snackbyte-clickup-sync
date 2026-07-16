@@ -14,8 +14,8 @@
   },
   "card": {
     "id": "86baz16qu",
-    "hash": "sha256:b1f9e39dcf29ae3e0db4e68d3b75787f4d157433d75be4b1ea091cefd4df96df",
-    "provenanceHash": "sha256:1aae9b05527d5afeeabe0f4742b38f4dccf79ed04bbe24bc8b32b4dd917b8571"
+    "hash": "sha256:43c687d7837d40e6f815fd33905e717bb92a058df21e2a8307ee8189b8d88e45",
+    "provenanceHash": "sha256:d646872b708eb655542fa6c6344d9b2150dac97a9dadd14d4538aad2a5fdf075"
   },
   "userStories": [
     {
@@ -89,5 +89,8 @@
       "hash": "sha256:6c73bb6f2700e15f3b96563dbcd8a4fa3f835eea2bdb818e598afe529596e8a9",
       "dependsOn": []
     }
-  ]
+  ],
+  "lifecycle": {
+    "verifyPassed": true
+  }
 }

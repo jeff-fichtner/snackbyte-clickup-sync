@@ -50,6 +50,9 @@ source "$SCRIPT_DIR/../../../../scripts/bash/common.sh"
 
 # Self-sufficiency: define has_jq only if the host common.sh didn't (older cores lack it).
 type has_jq >/dev/null 2>&1 || has_jq() { command -v jq >/dev/null 2>&1; }
+# Test hook: CLICKUP_NO_JQ=1 forces the documented no-jq fallback path so it can be covered by
+# tests on a machine that has jq installed (Constitution: the fallback must keep working).
+if [[ "${CLICKUP_NO_JQ:-}" == "1" ]]; then has_jq() { return 1; }; fi
 
 if [[ -z "$DIR" ]]; then
     eval "$(get_feature_paths)"

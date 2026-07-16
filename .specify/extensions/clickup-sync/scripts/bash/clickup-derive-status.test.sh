@@ -46,6 +46,15 @@ r="$(bash "$DERIVE" --dir "$d6")"; [[ "$r" == "done" ]] && ok "closedOut → don
 r1="$(bash "$DERIVE" --dir "$d3")"; r2="$(bash "$DERIVE" --dir "$d3")"
 [[ "$r1" == "$r2" && "$r1" == "ready" ]] && ok "ready is idempotent" || bad "idempotent" "$r1/$r2"
 
+# 8. no-jq fallback: the marker read must still work without jq (Constitution: documented fallback).
+#    CLICKUP_NO_JQ=1 forces the grep branch even on a machine that has jq.
+r="$(CLICKUP_NO_JQ=1 bash "$DERIVE" --dir "$d5")"
+[[ "$r" == "in-review" ]] && ok "no-jq: verifyPassed marker read via grep fallback" || bad "nojq-marker" "$r"
+r="$(CLICKUP_NO_JQ=1 bash "$DERIVE" --dir "$d6")"
+[[ "$r" == "done" ]] && ok "no-jq: closedOut marker read via grep fallback" || bad "nojq-closed" "$r"
+r="$(CLICKUP_NO_JQ=1 bash "$DERIVE" --dir "$d3")"
+[[ "$r" == "ready" ]] && ok "no-jq: artifact-derived state unaffected" || bad "nojq-ready" "$r"
+
 # ---- SUBTASK mode (--us): three states, unchanged from 001 ----
 if command -v jq >/dev/null 2>&1; then
   d7="$TMP/f7"; mkdir -p "$d7"; : > "$d7/spec.md"; : > "$d7/plan.md"

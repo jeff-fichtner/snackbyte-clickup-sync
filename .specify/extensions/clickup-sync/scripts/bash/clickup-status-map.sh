@@ -31,6 +31,9 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/../../../../scripts/bash/common.sh"
 type has_jq >/dev/null 2>&1 || has_jq() { command -v jq >/dev/null 2>&1; }
+# Test hook: CLICKUP_NO_JQ=1 forces the documented no-jq fallback path so it can be covered by
+# tests on a machine that has jq installed (Constitution: the fallback must keep working).
+if [[ "${CLICKUP_NO_JQ:-}" == "1" ]]; then has_jq() { return 1; }; fi
 
 SIX="open in-design ready in-development in-review done"
 

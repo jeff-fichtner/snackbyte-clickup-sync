@@ -136,7 +136,9 @@ cmd_set_card() {
         esac
     done
     cmd_init
-    local tmp; tmp="$(jq --arg id "$id" --arg h "$hash" '.card={id:$id,hash:$h}' "$MANIFEST")"
+    # Merge, don't replace: preserve sibling card fields (e.g. provenanceHash) across a status
+    # or body change. Replacing the whole object would silently drop the provenance dedup key.
+    local tmp; tmp="$(jq --arg id "$id" --arg h "$hash" '.card=((.card // {}) + {id:$id,hash:$h})' "$MANIFEST")"
     printf '%s\n' "$tmp" > "$MANIFEST"
 }
 
