@@ -285,7 +285,7 @@ none → defaults unchanged (spec US7).
 - [X] T036 [P] Update `.claude/skills/` mirrors and each module README to reflect the consolidated
       engine (US9) and the new commands
 - [X] T037 Run `npm run check:all` and fix any formatting/shell issues so the gate is green
-- [ ] T038 **(manual — requires a live ClickUp workspace via MCP; not runnable headlessly)** Walk
+- [X] T038 **(manual — requires a live ClickUp workspace via MCP; not runnable headlessly)** Walk
       quickstart.md Scenarios 1–9 against a real ClickUp workspace and record results; explicitly
       exercise the SC-007 provision fail-loud negative path with a purpose-built degenerate list
       (carried over from 001)
