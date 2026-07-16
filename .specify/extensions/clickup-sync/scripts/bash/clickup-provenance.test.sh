@@ -44,6 +44,22 @@ echo "$(run render --feature nomatch-xyz)" | grep -q 'no commits yet' && ok "emp
 # 5. bad usage → non-zero exit
 if run render >/dev/null 2>&1; then bad "missing --feature should fail" "exit0"; else ok "missing --feature → non-zero exit"; fi
 
+# 6. DEFAULT selection prefers the feature's spec dir over message-grep (the dogfood finding):
+#    a commit that touches specs/<feature>/ but does NOT name it in the message must still appear.
+(
+  cd "$TMP"
+  mkdir -p specs/zzz-spec
+  echo s > specs/zzz-spec/spec.md
+  git add specs/zzz-spec/spec.md
+  git commit -q -m "unrelated-subject: touches the feature dir without naming it"
+) >/dev/null 2>&1
+block="$(run render --feature zzz-spec)"
+echo "$block" | grep -q 'unrelated-subject' && ok "default prefers spec-dir path over message grep" || bad "path-default" "missed the dir-touching commit"
+
+# 7. explicit --path still wins
+block="$(run render --feature zzz-spec --path a.txt)"
+echo "$block" | grep -q 'zzz-feat' && ok "explicit --path overrides the default" || bad "path-explicit" "no match"
+
 n="$(wc -l < "$FAIL_F" | tr -d "[:space:]")"; n="${n:-0}"
 echo ""
 if [[ "$n" -eq 0 ]]; then echo "provenance: ALL PASS"; else echo "provenance: $n FAIL"; exit 1; fi

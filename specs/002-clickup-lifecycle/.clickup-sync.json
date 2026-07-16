@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "1",
+  "feature": "002-clickup-lifecycle",
+  "workspaceId": "90141363864",
+  "spaceId": "90146433590",
+  "listId": "901417991049",
+  "statusMapping": {
+    "open": "backlog",
+    "in-design": "in design",
+    "ready": "ready for development",
+    "in-development": "in development",
+    "in-review": "in review",
+    "done": "shipped"
+  },
+  "card": {
+    "id": "86baz16qu",
+    "hash": "sha256:b1f9e39dcf29ae3e0db4e68d3b75787f4d157433d75be4b1ea091cefd4df96df",
+    "provenanceHash": "sha256:1aae9b05527d5afeeabe0f4742b38f4dccf79ed04bbe24bc8b32b4dd917b8571"
+  },
+  "userStories": [
+    {
+      "us": "US1",
+      "id": "86baz17mk",
+      "hash": "sha256:8c9960bc6739fd70c98d37cfeb0f82ab2f726e726e0b30f62cbb1d7681a8c966",
+      "dependsOn": []
+    },
+    {
+      "us": "US2",
+      "id": "86baz17t5",
+      "hash": "sha256:ba74d66b46ec6c9c1ccc2a21166fbca4a9f313c83ad3648b6fdb7899b1ccae18",
+      "dependsOn": [
+        "US1",
+        "US8"
+      ]
+    },
+    {
+      "us": "US3",
+      "id": "86baz17fc",
+      "hash": "sha256:b8190c7fd868886d4616539d4579d78bc65d77fd8ba81a1da972077e5535bb4e",
+      "dependsOn": [
+        "US9"
+      ]
+    },
+    {
+      "us": "US4",
+      "id": "86baz180f",
+      "hash": "sha256:6cdf459385b44d4b27f9fd94dc100df81dd4f69f960c3a346f81bc2777b1d7b0",
+      "dependsOn": [
+        "US3"
+      ]
+    },
+    {
+      "us": "US5",
+      "id": "86baz1834",
+      "hash": "sha256:10015c49c1cfddd3ab306d8d542b5b6e30511fefd431fba3927db8cb485aaea2",
+      "dependsOn": [
+        "US3"
+      ]
+    },
+    {
+      "us": "US6",
+      "id": "86baz188g",
+      "hash": "sha256:053e7e3952000399a88602e3ce9b1790663efe2256f9989ad3bca404659974db",
+      "dependsOn": [
+        "US3"
+      ]
+    },
+    {
+      "us": "US7",
+      "id": "86baz18dk",
+      "hash": "sha256:742d5bbd12162ad14c9adc6b98893a34acc53ba318b81629b1c7db5059a724b3",
+      "dependsOn": [
+        "US3"
+      ]
+    },
+    {
+      "us": "US8",
+      "id": "86baz17qc",
+      "hash": "sha256:bc862d374c9e84235e6e3f46e35cb6e7d79780caf5bd1454f72d5336073b1f6f",
+      "dependsOn": [
+        "US1",
+        "US3",
+        "US9"
+      ]
+    },
+    {
+      "us": "US9",
+      "id": "86baz17d0",
+      "hash": "sha256:6c73bb6f2700e15f3b96563dbcd8a4fa3f835eea2bdb818e598afe529596e8a9",
+      "dependsOn": []
+    }
+  ]
+}

@@ -8,9 +8,13 @@
 #
 # Subcommands:
 #   render --feature <name> [--path <pathspec>]
-#       Print the canonical provenance block (markdown) for commits touching the feature.
-#       Selection: commits whose message references the feature name, OR (if --path given)
-#       commits touching that path. Deterministic order (most recent first), fixed format.
+#       Print the canonical provenance block (markdown) for the feature's commits.
+#       Selection (in order of preference):
+#         1. --path <pathspec>          commits touching that path (explicit)
+#         2. specs/<feature>/ exists    commits touching the feature's spec dir (the DEFAULT —
+#                                       "what touched this feature" is the honest signal)
+#         3. otherwise                  commits whose message references the feature name
+#       Deterministic order (most recent first), fixed format.
 #   hash --feature <name> [--path <pathspec>]
 #       Print sha256 of the rendered block (the dedup key stored as card.provenanceHash).
 #
@@ -33,10 +37,16 @@ sha256() {
 render_block() {
     local feature="$1" pathspec="${2:-}"
     local log
+    # Selection: explicit --path > the feature's spec dir (default) > message grep (fallback).
+    # Path-based is the honest signal — "commits that touched this feature" — and catches commits
+    # whose message doesn't spell out the full feature dir name (e.g. "002 Phase 3-11: ...").
+    if [[ -z "$pathspec" && -d "specs/$feature" ]]; then
+        pathspec="specs/$feature"
+    fi
     if [[ -n "$pathspec" ]]; then
         log="$(git log --no-merges --format='%h %s' -- "$pathspec" 2>/dev/null || true)"
     else
-        # commits whose subject/body references the feature name (grep is fixed-string, case-insens)
+        # Fallback: commits whose subject/body references the feature name (case-insensitive).
         log="$(git log --no-merges --format='%h %s' --grep="$feature" -i 2>/dev/null || true)"
     fi
     printf '## Commits (%s)\n\n' "$feature"
