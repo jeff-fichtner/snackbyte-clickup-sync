@@ -5,13 +5,13 @@ argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory; the ClickUp plug is optional"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup-sync/commands/speckit.verify.md"
+  source: ".specify/extensions/clickup/commands/speckit.verify.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the verify command. The authoritative command body lives at
-`.specify/extensions/clickup-sync/commands/speckit.verify.md` — read it and follow its steps
+`.specify/extensions/clickup/commands/speckit.verify.md` — read it and follow its steps
 exactly.
 
 Run after `/speckit-implement`. In order, stopping on the first failure: (1) recursive code review

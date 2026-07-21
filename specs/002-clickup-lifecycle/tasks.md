@@ -25,9 +25,9 @@ under `.specify/extensions/`, `.claude/skills/`, and `.specify/extensions.yml` (
 
 ## Path Conventions
 
-- ClickUp plug: `.specify/extensions/clickup-sync/`
-- Helpers + tests: `.specify/extensions/clickup-sync/scripts/bash/*.sh` (+ `*.test.sh`)
-- Command prompts: `.specify/extensions/clickup-sync/commands/*.md`
+- ClickUp plug: `.specify/extensions/clickup/`
+- Helpers + tests: `.specify/extensions/clickup/scripts/bash/*.sh` (+ `*.test.sh`)
+- Command prompts: `.specify/extensions/clickup/commands/*.md`
 - Consolidated modules: `.specify/extensions/{git-specify-branch,specify-review-loop,analyze-autofix,git-commit}/`
 - Skill mirrors: `.claude/skills/speckit-*/SKILL.md`
 - Hook wiring: `.specify/extensions.yml`
@@ -41,7 +41,7 @@ under `.specify/extensions/`, `.claude/skills/`, and `.specify/extensions.yml` (
 - [X] T001 Verify the check gate is green (`npm run check:all`) and the existing ClickUp plug
       helpers pass, establishing the baseline this feature extends
 - [X] T002 [P] Add the six-state + provenance fields to the config/manifest **example** docs by
-      reconciling `.specify/extensions/clickup-sync/config.yml` comments with
+      reconciling `.specify/extensions/clickup/config.yml` comments with
       `specs/002-clickup-lifecycle/data-model.md` (no logic yet — placeholders + comments only)
 
 ---
@@ -74,24 +74,24 @@ every ClickUp-facing story.
 
 ### Shared deterministic helpers (used by US3 and downstream)
 
-- [X] T007 [P] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh` to
+- [X] T007 [P] Extend `.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh` to
       emit the six card-level logical states (open/in-design/ready/in-development/in-review/done)
       from artifact presence + triggering command + manifest `lifecycle` markers, keeping subtasks
       three-state (per contracts/status-model.md, research Decision 3)
-- [X] T008 [P] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.sh` —
+- [X] T008 [P] Create `.specify/extensions/clickup/scripts/bash/clickup-status-map.sh` —
       logical→actual status mapping from config + the deterministic 3-fallback collapse
       (nearest-status), per FR-015 / research Decision 4
-- [X] T009 [US9] Extend `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh` for the
+- [X] T009 [US9] Extend `.specify/extensions/clickup/scripts/bash/clickup-manifest.sh` for the
       additive fields (`lifecycle.verifyPassed`/`closedOut`, `card.provenanceHash`, six-state
       `statusMapping`) per data-model.md, keeping `schemaVersion` "1" and all changes additive
 - [X] T010 [P] Test `clickup-derive-status.sh` six-state derivation in
-      `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.test.sh` (each state's
+      `.specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh` (each state's
       trigger condition; subtasks stay three-state; markers gate states 5–6)
 - [X] T011 [P] Test `clickup-status-map.sh` in
-      `.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.test.sh` (full six-status
+      `.specify/extensions/clickup/scripts/bash/clickup-status-map.test.sh` (full six-status
       map; degenerate three-status list collapses correctly; reports degradation)
 - [X] T012 [P] Test the manifest extensions in
-      `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.test.sh` (lifecycle markers
+      `.specify/extensions/clickup/scripts/bash/clickup-manifest.test.sh` (lifecycle markers
       round-trip, provenanceHash, six-state mapping, no clobber of existing fields, no-jq fallback)
 
 **Checkpoint**: The engine spine is wired and the shared helpers pass under `npm run check:all` —
@@ -108,10 +108,10 @@ advancing through the six logical states — making the artifact phase visible a
 in-design → ready → in-development; a status-only change makes zero content writes; a 3-status list
 degrades cleanly (quickstart Scenarios 1, 2).
 
-- [X] T013 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md`
+- [X] T013 [US3] Extend `.specify/extensions/clickup/commands/speckit.clickup.provision.md`
       to create the card in `open` at provision (FR-013a) and resolve/record the six-state
       `statusMapping` (via `clickup-status-map.sh`), writing the `statuses:` config block
-- [X] T014 [US3] Extend `.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md` to set
+- [X] T014 [US3] Extend `.specify/extensions/clickup/commands/speckit.clickup.sync.md` to set
       the card's six-state status from `clickup-derive-status.sh` + `clickup-status-map.sh` on every
       run, and subtasks' three-state status; only write status when it changed (FR-013/014)
 - [X] T015 [US3] Wire the new sync hooks in `.specify/extensions.yml`: `after_specify` (→in-design),
@@ -158,7 +158,7 @@ and only on success advances the card to `in-review`.
 **Independent Test**: On a green feature, `/speckit-verify` → review + gate + E2E → `in-review`; on
 a red gate or unresolved finding, it stops and the card stays `in-development` (quickstart 3).
 
-- [X] T017 [US8] Write `.specify/extensions/clickup-sync/commands/speckit.verify.md` implementing
+- [X] T017 [US8] Write `.specify/extensions/clickup/commands/speckit.verify.md` implementing
       contracts/verify.command.md: step 1 recursive code review (invoke the review module with
       `target: code`, T005), step 2 full unit gate (invoke the US1 capability T024, must pass), step
       3 automatable E2E (best-effort, report the rest), step 4 on pass set `lifecycle.verifyPassed`
@@ -184,7 +184,7 @@ sign-off → mark done → final sync → commit → `done`.
 **Independent Test**: From `in-review`, `/speckit-close` surfaces manual tasks and waits; on sign-off
 it checks them, syncs to `done`, and commits — sync itself never commits (quickstart 4).
 
-- [X] T021 [US2] Write `.specify/extensions/clickup-sync/commands/speckit.close.md` implementing
+- [X] T021 [US2] Write `.specify/extensions/clickup/commands/speckit.close.md` implementing
       contracts/close.command.md: re-run gate (red→refuse, FR-010a), confirm non-manual complete
       (FR-010), surface manual tasks + wait for sign-off (never auto-check, FR-007)
 - [X] T022 [US2] In close, on sign-off: mark manual tasks done in `tasks.md`, set
@@ -239,10 +239,10 @@ in the same list are still reconciled (quickstart 6, SC-008).
 **Independent Test**: After commits exist, provenance appears on the card; re-run adds no duplicates
 (quickstart 7, SC-009).
 
-- [X] T029 [P] [US6] Create `.specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh` —
+- [X] T029 [P] [US6] Create `.specify/extensions/clickup/scripts/bash/clickup-provenance.sh` —
       render the feature's git log into a canonical, hash-deduped block (research Decision 6)
 - [X] T030 [P] [US6] Test `clickup-provenance.sh` in
-      `.specify/extensions/clickup-sync/scripts/bash/clickup-provenance.test.sh` (stable hash for
+      `.specify/extensions/clickup/scripts/bash/clickup-provenance.test.sh` (stable hash for
       same commits; different commits differ; empty history handled)
 - [X] T031 [US6] In sync, push provenance to the card via MCP (comment/body section), deduped by
       `card.provenanceHash`, staying one-way. Route provenance through a single mode-check
@@ -263,7 +263,7 @@ approved rules are honored, else baked-in defaults apply.
 none → defaults unchanged (spec US7).
 
 - [X] T032 [US7] Write a design-rules command prompt
-      `.specify/extensions/clickup-sync/commands/speckit.clickup.design-rules.md`: inspect the real
+      `.specify/extensions/clickup/commands/speckit.clickup.design-rules.md`: inspect the real
       space/list/statuses/custom-fields (via ClickUp MCP read tools) and **propose** a ruleset for
       explicit approval — never silently apply board-reshaping changes (FR-025)
 - [X] T033 [US7] In sync + config, honor an approved ruleset when present and fall back to baked-in
@@ -280,7 +280,7 @@ none → defaults unchanged (spec US7).
 
 - [X] T035 [P] Document the tracker-plug interface seam (resolve-target / create-update-item /
       set-checklist / link-dependency / update-status / attach-provenance) in
-      `.specify/extensions/clickup-sync/README.md`, noting the local/multi-plug realization is
+      `.specify/extensions/clickup/README.md`, noting the local/multi-plug realization is
       deferred (research Decision 7 / FR-032)
 - [X] T036 [P] Update `.claude/skills/` mirrors and each module README to reflect the consolidated
       engine (US9) and the new commands

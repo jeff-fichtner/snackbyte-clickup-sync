@@ -28,7 +28,7 @@ files.
 │   ├── specify-review-loop/           # recursive review — target: spec (after specify) OR code (verify)
 │   ├── analyze-autofix/               # apply unambiguous artifact fixes (after_analyze)
 │   ├── git-commit/                    # checkpoint commit (before_implement; reused by close-out)
-│   └── clickup-sync/                  # the ClickUp plug (first external plug) — see its README
+│   └── clickup/                       # the ClickUp plug (first external plug) — see its README
 ├── memory/
 │   └── constitution.md                # the engine's constitution (governs engine + every plug)
 ├── scripts/bash/                      # shared repo-side helpers + the check-gate test runner
@@ -47,10 +47,10 @@ alongside (FR-038).
 
 | Concern | Engine or plug | Location today |
 |---|---|---|
-| Lifecycle status derivation | engine logic | `extensions/clickup-sync/scripts/bash/clickup-derive-status.sh` (to be generalized) |
-| Manifest / idempotence index | engine logic | `extensions/clickup-sync/scripts/bash/clickup-manifest.sh` (to be generalized) |
-| `tasks.md` parsing | engine logic | `extensions/clickup-sync/scripts/bash/clickup-parse-tasks.sh` (to be generalized) |
-| ClickUp I/O (MCP orchestration) | ClickUp plug | `extensions/clickup-sync/commands/*.md` |
+| Lifecycle status derivation | engine logic | `extensions/clickup/scripts/bash/clickup-derive-status.sh` (to be generalized) |
+| Manifest / idempotence index | engine logic | `extensions/clickup/scripts/bash/clickup-manifest.sh` (to be generalized) |
+| `tasks.md` parsing | engine logic | `extensions/clickup/scripts/bash/clickup-parse-tasks.sh` (to be generalized) |
+| ClickUp I/O (MCP orchestration) | ClickUp plug | `extensions/clickup/commands/*.md` |
 | Local plug (zero-tracker default) | engine (built-in plug) | not yet built — target of `002` |
 | Close-out / handoff ceremony | engine | not yet built — specified in `002` (US1/US2) |
 

@@ -3,7 +3,7 @@
 > **Migration & status note (2026-07-07).** This feature was **originally developed
 > as `004-clickup-sync` inside `snackbyte-base`** and migrated into this standalone repo
 > as `001-clickup-sync` when the extension was extracted. It is **already implemented** —
-> the working extension lives at `.specify/extensions/clickup-sync/` (`extension.yml`,
+> the working extension lives at `.specify/extensions/clickup/` (`extension.yml`,
 > `config.yml`, `commands/`, `scripts/bash/` + `*.test.sh`). Because it was built before
 > this repo existed, its history **does not follow the explicit `specify`-driven protocol**
 > (branch-per-feature, ordered `/speckit-*` runs) that new features here will follow; these

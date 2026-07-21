@@ -5,13 +5,13 @@ argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory and the ClickUp MCP server connected"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup-sync/commands/speckit.clickup.sync.md"
+  source: ".specify/extensions/clickup/commands/speckit.clickup.sync.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the ClickUp sync command. The authoritative command body lives at
-`.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md` — read it and follow its
+`.specify/extensions/clickup/commands/speckit.clickup.sync.md` — read it and follow its
 steps exactly.
 
 Make the feature's ClickUp representation match the committed repo: one feature-card in the
@@ -23,7 +23,7 @@ materializes as soon as `spec.md` exists and is enriched on every run.
 ## Steps
 
 1. Read the full command body at
-   `.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md`.
+   `.specify/extensions/clickup/commands/speckit.clickup.sync.md`.
 2. Follow it verbatim: refuse (and point the user to `/speckit-clickup-provision`) unless the
    manifest has `listId` + `statusMapping`; derive body / US-subtasks / checkbox-lists / deps /
    status via the `clickup-*.sh` helpers; hash each element canonically; diff against the

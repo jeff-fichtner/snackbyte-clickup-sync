@@ -8,17 +8,17 @@ covered by shell tests). Maps each step to the success criteria it demonstrates.
 
 - ClickUp MCP server connected and authenticated in the running agent.
 - A ClickUp space you can create lists/tasks in.
-- The extension installed: `.specify/extensions/clickup-sync/` present and listed under
+- The extension installed: `.specify/extensions/clickup/` present and listed under
   `installed:` in `.specify/extensions.yml`.
-- `.specify/extensions/clickup-sync/config.yml` filled with your real `space` and `list`
+- `.specify/extensions/clickup/config.yml` filled with your real `space` and `list`
   names (not the `<your-…>` placeholders).
 
 ## Setup
 
 ```bash
 # From repo root, confirm the extension's shell helpers pass their unit tests (no ClickUp needed):
-bash .specify/extensions/clickup-sync/scripts/bash/clickup-parse-tasks.test.sh
-bash .specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.test.sh
+bash .specify/extensions/clickup/scripts/bash/clickup-parse-tasks.test.sh
+bash .specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh
 ```
 
 ## Scenario 1 — Provision (US3 / SC-007, SC-008)
@@ -73,7 +73,7 @@ Change the user-story ordering (make US3 no longer depend on US2), sync.
 
 - In a clean checkout, set only `config.yml`'s `space`/`list` and run provision + sync
   against a different workspace — works with no code edits (SC-010).
-- `grep -ri clickup .specify/extensions/clickup-sync | grep -Ei '<a-secret-or-id-pattern>'`
+- `grep -ri clickup .specify/extensions/clickup | grep -Ei '<a-secret-or-id-pattern>'`
   finds nothing (SC-011).
 - Temporarily remove `specs/` and `.specify/` in a scratch copy → no shipped file references
   ClickUp (SC-012).

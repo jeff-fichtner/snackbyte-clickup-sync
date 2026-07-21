@@ -42,7 +42,7 @@ finding (FR-034). The card stays at `in-development`.
 4. **Advance to `in-review`** — only if steps 1–3 passed:
    - Set the marker:
      ```bash
-     .specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh set-lifecycle --key verifyPassed --value true
+     .specify/extensions/clickup/scripts/bash/clickup-manifest.sh set-lifecycle --key verifyPassed --value true
      ```
    - Run `/speckit-clickup-sync` so the card advances to `in-review` (the derive helper now reads
      `verifyPassed`). If ClickUp is disabled/uninstalled, this is a silent no-op — verify still

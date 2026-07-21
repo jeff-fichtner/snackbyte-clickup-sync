@@ -99,7 +99,7 @@ The most consequential finding (no checklist API) amended the spec mid-plan.
 
 ## Decision 6: Package shape mirrors the git-commit extension; two commands
 
-- **Decision**: `.specify/extensions/clickup-sync/` with `extension.yml` (schema_version
+- **Decision**: `.specify/extensions/clickup/` with `extension.yml` (schema_version
   "1.0"), `config.yml`, `README.md`, `commands/{provision,sync}.md`, `scripts/bash/*.sh`;
   mirrored `.claude/skills/*/SKILL.md`; `installed:` + `hooks:` rows in
   `.specify/extensions.yml`. Repo-side logic (tasks.md parse, status derive, hashing,

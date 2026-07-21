@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for clickup-status-map.sh — logical→actual status mapping + 3-state fallback.
-# Run: bash .specify/extensions/clickup-sync/scripts/bash/clickup-status-map.test.sh
+# Run: bash .specify/extensions/clickup/scripts/bash/clickup-status-map.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

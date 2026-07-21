@@ -5,13 +5,13 @@ argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory; the ClickUp plug is optional"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup-sync/commands/speckit.close.md"
+  source: ".specify/extensions/clickup/commands/speckit.close.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the close-out command. The authoritative command body lives at
-`.specify/extensions/clickup-sync/commands/speckit.close.md` — read it and follow its steps exactly.
+`.specify/extensions/clickup/commands/speckit.close.md` — read it and follow its steps exactly.
 
 Run when the human is ready to close a verified feature. In order: (1) re-run the check gate
 (red → refuse); (2) confirm non-manual tasks complete; (3) surface the remaining manual tasks and

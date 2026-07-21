@@ -5,13 +5,13 @@ argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory and the ClickUp MCP server connected"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup-sync/commands/speckit.clickup.provision.md"
+  source: ".specify/extensions/clickup/commands/speckit.clickup.provision.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the ClickUp provision command. The authoritative command body lives at
-`.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md` — read it and follow
+`.specify/extensions/clickup/commands/speckit.clickup.provision.md` — read it and follow
 its steps exactly.
 
 Ensure the ClickUp target for this repo exists and record where it is, so later `sync` runs
@@ -22,7 +22,7 @@ the connected ClickUp MCP server — no API/auth code.
 ## Steps
 
 1. Read the full command body at
-   `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md`.
+   `.specify/extensions/clickup/commands/speckit.clickup.provision.md`.
 2. Resolve config first (placeholder → ask → remember): if `config.yml` has `enabled: false`,
    silently no-op (the user already declined — never re-ask). If `space`/`list` are still
    `<...>` placeholders, ask the user **once** for the space/list; save real values they give

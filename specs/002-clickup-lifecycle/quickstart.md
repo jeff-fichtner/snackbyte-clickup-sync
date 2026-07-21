@@ -6,7 +6,7 @@ in headless CI, so tracker-touching validation is manual; the deterministic help
 
 ## Prerequisites
 - ClickUp MCP server connected; a scratch list you can create cards in.
-- The engine installed: `.specify/extensions/clickup-sync/` present and the five modules wired in
+- The engine installed: `.specify/extensions/clickup/` present and the five modules wired in
   `.specify/extensions.yml` (US9).
 - `config.yml` filled: real `space`/`list` + the `statuses:` mapping (six logical → actual).
 

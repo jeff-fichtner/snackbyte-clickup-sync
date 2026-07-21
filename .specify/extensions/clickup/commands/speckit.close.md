@@ -38,7 +38,7 @@ AI reflects the decision onto the card.
    - Mark those manual tasks done in `tasks.md` (edit the checkboxes).
    - Set the close marker:
      ```bash
-     .specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh set-lifecycle --key closedOut --value true
+     .specify/extensions/clickup/scripts/bash/clickup-manifest.sh set-lifecycle --key closedOut --value true
      ```
 
 5. **Final sync** — run `/speckit-clickup-sync` so the card + subtasks reach `done`/shipped (the

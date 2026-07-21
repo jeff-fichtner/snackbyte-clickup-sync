@@ -53,7 +53,7 @@ and sync (element IDs + hashes); committed by the author with the other artifact
   dedup (FR-017).
 - Last-writer-wins on concurrent commits (accepted; edge case).
 
-## Entity: Config placeholder — `.specify/extensions/clickup-sync/config.yml` (committed, secret-free)
+## Entity: Config placeholder — `.specify/extensions/clickup/config.yml` (committed, secret-free)
 
 ```yaml
 # Fill these in for your repo. NO IDs, NO credentials — the MCP server handles auth,

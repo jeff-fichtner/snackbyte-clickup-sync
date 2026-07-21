@@ -5,13 +5,13 @@ argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory and the ClickUp MCP server connected"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup-sync/commands/speckit.clickup.design-rules.md"
+  source: ".specify/extensions/clickup/commands/speckit.clickup.design-rules.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the ClickUp design-rules command. The authoritative command body lives at
-`.specify/extensions/clickup-sync/commands/speckit.clickup.design-rules.md` — read it and follow its
+`.specify/extensions/clickup/commands/speckit.clickup.design-rules.md` — read it and follow its
 steps exactly.
 
 Inspect the real ClickUp workspace (statuses, custom fields, board shape) via the ClickUp MCP read

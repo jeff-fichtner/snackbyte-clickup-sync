@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Tests for clickup-provenance.sh — git log → canonical, hash-deduped provenance block.
-# Run: bash .specify/extensions/clickup-sync/scripts/bash/clickup-provenance.test.sh
+# Run: bash .specify/extensions/clickup/scripts/bash/clickup-provenance.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

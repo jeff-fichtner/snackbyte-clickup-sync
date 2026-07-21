@@ -14,7 +14,7 @@ orchestration in the command prompts is validated manually via quickstart.md (th
 is not available headlessly), not by automated tests.
 
 **Organization**: Grouped by user story. Note the package layout differs from a `src/` app —
-everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, and
+everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 `.specify/extensions.yml` (see plan.md "Project Structure").
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -25,9 +25,9 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 ## Path Conventions
 
-- Extension package: `.specify/extensions/clickup-sync/`
-- Command prompts: `.specify/extensions/clickup-sync/commands/*.md`
-- Bash helpers + tests: `.specify/extensions/clickup-sync/scripts/bash/*.sh`
+- Extension package: `.specify/extensions/clickup/`
+- Command prompts: `.specify/extensions/clickup/commands/*.md`
+- Bash helpers + tests: `.specify/extensions/clickup/scripts/bash/*.sh`
 - Skill mirrors: `.claude/skills/speckit-clickup-*/SKILL.md`
 - Hook wiring: `.specify/extensions.yml`
 
@@ -37,10 +37,10 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 **Purpose**: Create the extension package scaffold, mirroring the existing `git-commit` extension.
 
-- [X] T001 Create the package directory tree `.specify/extensions/clickup-sync/{commands,scripts/bash}/` and empty `README.md`
-- [X] T002 Write `.specify/extensions/clickup-sync/extension.yml` (schema_version "1.0"; id `clickup-sync`; declare the two commands and their hook slots per plan.md), modeled on `.specify/extensions/git-commit/extension.yml`
-- [X] T003 [P] Write the secret-free `.specify/extensions/clickup-sync/config.yml` placeholder (`space`/`list` = `<your-…>`) per contracts/config.schema.md
-- [X] T004 [P] Write `.specify/extensions/clickup-sync/README.md` — what the extension is, how to configure, what it touches, and that it is MCP-only
+- [X] T001 Create the package directory tree `.specify/extensions/clickup/{commands,scripts/bash}/` and empty `README.md`
+- [X] T002 Write `.specify/extensions/clickup/extension.yml` (schema_version "1.0"; id `clickup-sync`; declare the two commands and their hook slots per plan.md), modeled on `.specify/extensions/git-commit/extension.yml`
+- [X] T003 [P] Write the secret-free `.specify/extensions/clickup/config.yml` placeholder (`space`/`list` = `<your-…>`) per contracts/config.schema.md
+- [X] T004 [P] Write `.specify/extensions/clickup/README.md` — what the extension is, how to configure, what it touches, and that it is MCP-only
 
 ---
 
@@ -50,13 +50,13 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 **⚠️ CRITICAL**: No user-story command work should begin until these helpers exist and pass their tests.
 
-- [X] T005 [P] Implement `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh` — read/merge/write `specs/<feature>/.clickup-sync.json` (subcommands: get-targets, set-targets, get-element, set-element), reusing `common.sh` (`get_feature_paths`, `has_jq`, `json_escape`) per contracts/manifest.schema.md
-- [X] T006 [P] Implement `.specify/extensions/clickup-sync/scripts/bash/clickup-parse-tasks.sh` — parse `tasks.md` into US-grouped task lines with done-state, emit JSON (feature, per-US `- [ ] T00x` lines), falling back to an "unattributed" group per FR-002a
-- [X] T007 [P] Implement `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh` — map repo state (plan.md presence + checkbox counts) to `not-started|in-progress|done` per research Decision 4
+- [X] T005 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-manifest.sh` — read/merge/write `specs/<feature>/.clickup-sync.json` (subcommands: get-targets, set-targets, get-element, set-element), reusing `common.sh` (`get_feature_paths`, `has_jq`, `json_escape`) per contracts/manifest.schema.md
+- [X] T006 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.sh` — parse `tasks.md` into US-grouped task lines with done-state, emit JSON (feature, per-US `- [ ] T00x` lines), falling back to an "unattributed" group per FR-002a
+- [X] T007 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh` — map repo state (plan.md presence + checkbox counts) to `not-started|in-progress|done` per research Decision 4
 - [X] T008 Add a stable content-hash helper (sha256 over normalized derived content) to `clickup-manifest.sh` (or a sibling `clickup-hash.sh`) so a no-op run hashes equal (SC-002); no time/random in hashed input
-- [X] T009 [P] Test `clickup-parse-tasks.sh` in `.specify/extensions/clickup-sync/scripts/bash/clickup-parse-tasks.test.sh` (empty/malformed tasks.md, mixed checked/unchecked, unattributed lines), `*.test.sh` style
-- [X] T010 [P] Test `clickup-derive-status.sh` in `.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.test.sh` (spec-only, mid-implement, all-checked)
-- [X] T011 [P] Test `clickup-manifest.sh` + hashing in `.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.test.sh` (round-trip, merge without clobber, stable no-op hash, no-jq fallback)
+- [X] T009 [P] Test `clickup-parse-tasks.sh` in `.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.test.sh` (empty/malformed tasks.md, mixed checked/unchecked, unattributed lines), `*.test.sh` style
+- [X] T010 [P] Test `clickup-derive-status.sh` in `.specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh` (spec-only, mid-implement, all-checked)
+- [X] T011 [P] Test `clickup-manifest.sh` + hashing in `.specify/extensions/clickup/scripts/bash/clickup-manifest.test.sh` (round-trip, merge without clobber, stable no-op hash, no-jq fallback)
 
 **Checkpoint**: Helpers pass their tests under `npm run check:all` conventions — command prompts can now be written on a trustworthy base.
 
@@ -70,7 +70,7 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 **Independent Test**: From a repo with no recorded target, run provision → manifest has `listId` + `statusMapping` and the list exists; re-run → no duplicate, same IDs; point at a list with insufficient statuses → stops naming the missing ones, writes nothing.
 
-- [X] T012 [US3] Write `.specify/extensions/clickup-sync/commands/speckit.clickup.provision.md` implementing contracts/provision.command.md: read config, `clickup_get_workspace_hierarchy` to locate space (handle 0/ambiguous), find-or-create list (`clickup_create_list`), resolve `statusMapping` from `clickup_get_list`, fail-loud if insufficient (FR-012), write targets via `clickup-manifest.sh`
+- [X] T012 [US3] Write `.specify/extensions/clickup/commands/speckit.clickup.provision.md` implementing contracts/provision.command.md: read config, `clickup_get_workspace_hierarchy` to locate space (handle 0/ambiguous), find-or-create list (`clickup_create_list`), resolve `statusMapping` from `clickup_get_list`, fail-loud if insufficient (FR-012), write targets via `clickup-manifest.sh`
 - [X] T013 [P] [US3] Create the skill mirror `.claude/skills/speckit-clickup-provision/SKILL.md` (user-invocable) pointing at the provision command
 - [X] T014 [US3] Register provision in `.specify/extensions.yml`: add `clickup-sync` to `installed:` and add the `after_plan` optional hook row for `speckit.clickup.provision`
 
@@ -84,7 +84,7 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 **Independent Test**: With only `spec.md`, sync → one card, verbose body, US-subtasks with dep links, no checkboxes; add `tasks.md`, sync → each US-subtask gains its `- [ ] T00x` list matching the repo; re-sync unchanged → zero writes; flip one task → exactly one checkbox changes.
 
-- [X] T015 [US1] Write `.specify/extensions/clickup-sync/commands/speckit.clickup.sync.md` implementing contracts/sync.command.md: refuse if manifest lacks `listId`/`statusMapping`; derive body/US-subtasks/checkbox-lists/deps/status via the helpers; diff against manifest; create/update via `clickup_create_task`/`clickup_update_task` (card + `parent` subtasks + `markdown_description`); skip unchanged with zero MCP calls (SC-002)
+- [X] T015 [US1] Write `.specify/extensions/clickup/commands/speckit.clickup.sync.md` implementing contracts/sync.command.md: refuse if manifest lacks `listId`/`statusMapping`; derive body/US-subtasks/checkbox-lists/deps/status via the helpers; diff against manifest; create/update via `clickup_create_task`/`clickup_update_task` (card + `parent` subtasks + `markdown_description`); skip unchanged with zero MCP calls (SC-002)
 - [X] T016 [US1] In sync, synthesize the verbose card body (spec summary + user-story list w/ priorities + artifact links, not full copies) per FR-004a
 - [X] T017 [US1] In sync, render each user story as a US-subtask whose `markdown_description` holds the `- [ ] T00x …` checkbox list from `clickup-parse-tasks.sh`, boxes reflecting done-state (FR-002a/003); unattributed lines → card's own description. Rewrite the checkbox section of the description **wholesale** each run so a line removed from `tasks.md` disappears from the card (not just flips) — the "task line removed" edge case, no residual boxes
 - [X] T018 [US1] In sync, implement progressive materialization: create the card as soon as `spec.md` exists (no `tasks.md` required), re-deriving everything each run (FR-007a/b). Reconcile with the empty/malformed-`tasks.md` edge case: a spec-present feature whose `tasks.md` yields zero recognizable lines still creates the card (body + status + US-subtasks) but adds **no** checkbox list — an absent/empty `tasks.md` is not the same as an absent spec, and no empty-checklist noise is produced
@@ -139,7 +139,7 @@ everything lives under `.specify/extensions/clickup-sync/`, `.claude/skills/`, a
 
 **Purpose**: Finalize docs, validate end-to-end, ensure the gate is green.
 
-- [X] T028 [P] Complete `.specify/extensions/clickup-sync/README.md`: configuration, the two commands, hook slots, the no-checklist-API design note, and "MCP-only, one-way" guarantees
+- [X] T028 [P] Complete `.specify/extensions/clickup/README.md`: configuration, the two commands, hook slots, the no-checklist-API design note, and "MCP-only, one-way" guarantees
 - [X] T029 Run `npm run check:all` (prettier over the new `.md`/`.yml`/`.json`, shell hygiene) and fix any formatting so the local gate is green
 - [X] T030 **(manual — requires a live ClickUp workspace via the MCP server; not runnable headlessly)** Walk quickstart.md Scenarios 1–7 against a real ClickUp workspace and record results; fix any behavior gaps. Explicitly exercise the negative paths: provision against a list with insufficient statuses stops and names them and writes nothing (SC-007 / F4); a removed user story leaves no orphaned US-subtask (F5). **Validated 2026-07-11** against a scratch list in the `snackbyte-clickup-sync` space: positive Scenarios 1–3, idempotent no-op re-sync (SC-002), single-task-flip (SC-003), status progression not-started→in-progress→done (SC-004), dependency reconcile (SC-005), one-way overwrite of a hand-edit (SC-009), and no-secrets/no-IDs hygiene (SC-011) all pass. The SC-007 insufficient-statuses negative path was **not** triggered (every list in the workspace ships the full 9-status set; needs a purpose-built degenerate list) — deferred to the 002 backlog under "Deferred validation."
 - [X] T031 [P] Confirm SC-012 by construction: `grep -ri clickup` over shipped app source/docs/CI (excluding `specs/`, `.specify/`, `.claude/`) returns nothing

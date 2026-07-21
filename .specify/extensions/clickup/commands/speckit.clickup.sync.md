@@ -25,7 +25,7 @@ read-only mirror for them.
 ## Preconditions
 
 - The ClickUp MCP server is connected.
-- ClickUp sync is not disabled for this repo. If `.specify/extensions/clickup-sync/config.yml`
+- ClickUp sync is not disabled for this repo. If `.specify/extensions/clickup/config.yml`
   has `enabled: false` (the user previously declined), **silently do nothing and exit 0** — do
   not ask, do not sync. (Matches provision's decline state.)
 - The manifest has `listId` and `statusMapping`. If not, **refuse** and instruct the user to
@@ -33,8 +33,8 @@ read-only mirror for them.
   Check with:
 
   ```bash
-  .specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh get listId
-  .specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh get statusMapping
+  .specify/extensions/clickup/scripts/bash/clickup-manifest.sh get listId
+  .specify/extensions/clickup/scripts/bash/clickup-manifest.sh get statusMapping
   ```
 - `spec.md` exists for the feature (the card is keyed off the spec).
 
@@ -45,18 +45,18 @@ card can derive `in-development` (artifact presence alone can't distinguish `rea
 `in-development` — see contracts/status-model.md):
 
 ```bash
-.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh set-lifecycle --key implementStarted --value true
+.specify/extensions/clickup/scripts/bash/clickup-manifest.sh set-lifecycle --key implementStarted --value true
 ```
 
 Then run the helpers to compute the desired state:
 
 ```bash
 # US-grouped task lines with done-state (empty groups if no tasks.md yet):
-.specify/extensions/clickup-sync/scripts/bash/clickup-parse-tasks.sh
+.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.sh
 # Six-state CARD status (open|in-design|ready|in-development|in-review|done):
-.specify/extensions/clickup-sync/scripts/bash/clickup-derive-status.sh --card
+.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh --card
 # Map a logical state to this list's actual status name (handles the 3-state fallback):
-.specify/extensions/clickup-sync/scripts/bash/clickup-status-map.sh resolve --logical <state> --map "$(clickup-manifest.sh get statusMapping)"
+.specify/extensions/clickup/scripts/bash/clickup-status-map.sh resolve --logical <state> --map "$(clickup-manifest.sh get statusMapping)"
 ```
 
 Then compute each element's desired content:
@@ -84,7 +84,7 @@ data, NOT the rendered ClickUp prose — so any future run recomputes the identi
 no-op stays a no-op):
 
 ```bash
-.specify/extensions/clickup-sync/scripts/bash/clickup-manifest.sh hash --string "<content>"
+.specify/extensions/clickup/scripts/bash/clickup-manifest.sh hash --string "<content>"
 ```
 
 Canonical content per element (keep this exact — the stored manifest hashes depend on it):
@@ -127,8 +127,8 @@ ClickUp to an owned element is reverted on the next sync (never merged back into
      entirely (no double-posting — FR-024a).
    - **Option A**: render + hash the block:
      ```bash
-     .specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh render --feature <feature>
-     .specify/extensions/clickup-sync/scripts/bash/clickup-provenance.sh hash --feature <feature>
+     .specify/extensions/clickup/scripts/bash/clickup-provenance.sh render --feature <feature>
+     .specify/extensions/clickup/scripts/bash/clickup-provenance.sh hash --feature <feature>
      ```
      If the hash differs from the manifest's `card.provenanceHash`, push the block to the card via
      MCP (a comment or a body section) and record the new hash with

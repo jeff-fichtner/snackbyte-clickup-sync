@@ -3,7 +3,7 @@ installed:
 - specify-review-loop
 - analyze-autofix
 - git-commit
-- clickup-sync
+- clickup
 settings:
   auto_execute_hooks: true
 hooks:
@@ -25,7 +25,7 @@ hooks:
     prompt: Recursively review the spec and fix unambiguous issues?
     description: Recursively review the spec and fix unambiguous issues (runs before clarify)
     condition: null
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.sync
     enabled: true
     optional: true
@@ -43,7 +43,7 @@ hooks:
     description: Checkpoint the feature's spec artifacts before implementation
     condition: null
   after_plan:
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.provision
     enabled: true
     optional: true
@@ -52,7 +52,7 @@ hooks:
     description: Find-or-create the ClickUp target and record it in the feature manifest
     condition: null
   after_tasks:
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.sync
     enabled: true
     optional: true
@@ -69,7 +69,7 @@ hooks:
     prompt: Apply unambiguous analysis fixes and re-present the results?
     description: Apply unambiguous analysis fixes and re-present results
     condition: null
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.sync
     enabled: true
     optional: true
@@ -78,7 +78,7 @@ hooks:
     description: Mirror the feature and hold the card at ready (artifacts complete)
     condition: null
   after_implement:
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.sync
     enabled: true
     optional: true
@@ -87,7 +87,7 @@ hooks:
     description: Mirror the feature-card, US-subtasks, checklist, and status; advance to in-development
     condition: null
   after_converge:
-  - extension: clickup-sync
+  - extension: clickup
     command: speckit.clickup.sync
     enabled: true
     optional: true

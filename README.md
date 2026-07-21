@@ -51,7 +51,7 @@ is what makes "zero external plugs" still work.
 ## The ClickUp plug
 
 Packaged as a standard Spec Kit extension under
-[`.specify/extensions/clickup-sync/`](.specify/extensions/clickup-sync/) — the same shape as
+[`.specify/extensions/clickup/`](.specify/extensions/clickup/) — the same shape as
 `git-commit`, `agent-context`, and the other snackbyte extensions. It is **not** a node package;
 the `package.json` at the root exists only to provide the local check gate. Two commands, wired as
 optional lifecycle hooks in [`.specify/extensions.yml`](.specify/extensions.yml):
@@ -65,7 +65,7 @@ optional lifecycle hooks in [`.specify/extensions.yml`](.specify/extensions.yml)
   run makes zero ClickUp writes), MCP-only.
 
 Configure the ClickUp plug in
-[`.specify/extensions/clickup-sync/config.yml`](.specify/extensions/clickup-sync/config.yml):
+[`.specify/extensions/clickup/config.yml`](.specify/extensions/clickup/config.yml):
 
 ```yaml
 space: "<your-space-name>"        # ClickUp space the shared list lives in
@@ -86,7 +86,7 @@ npm run check:all      # shell-syntax lint + every *.test.sh (the ClickUp plug's
 ## Layout
 
 ```
-.specify/extensions/clickup-sync/        # the ClickUp plug (a Spec Kit extension)
+.specify/extensions/clickup/              # the ClickUp plug (a Spec Kit extension)
 ├── extension.yml                         # package declaration + hook slots
 ├── config.yml                            # per-repo space/list (no IDs/secrets)
 ├── commands/speckit.clickup.*.md         # the two command prompts (ClickUp MCP orchestration)

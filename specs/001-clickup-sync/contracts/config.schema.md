@@ -1,4 +1,4 @@
-# Contract: Config placeholder schema — `.specify/extensions/clickup-sync/config.yml`
+# Contract: Config placeholder schema — `.specify/extensions/clickup/config.yml`
 
 Committed, secret-free. The only per-repo knobs an adopter sets.
 

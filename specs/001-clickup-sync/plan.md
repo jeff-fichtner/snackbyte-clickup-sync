@@ -19,7 +19,7 @@ go through the connected ClickUp MCP server — no custom API/auth code. The pac
 existing `git-commit` extension's structure and registers as optional lifecycle hooks.
 
 **Technical approach**: This is spec-workflow scaffolding, not application code. The
-"implementation" is a self-contained extension package under `.specify/extensions/clickup-sync/`
+"implementation" is a self-contained extension package under `.specify/extensions/clickup/`
 — an `extension.yml` declaration, agent-driven command prompts (`.md`) that call ClickUp MCP
 tools, thin bash helpers for repo-side parsing/manifest I/O, mirrored `.claude/skills/*/SKILL.md`
 entries, and hook rows in `.specify/extensions.yml`. It ships with the template and is
@@ -42,7 +42,7 @@ documented no-jq fallback (matching the existing scripts' pattern).
 
 **Storage**: One committed JSON manifest per feature at `specs/<feature>/.clickup-sync.json`
 (the dedup index + target locator). One committed, secret-free config placeholder at
-`.specify/extensions/clickup-sync/config.yml` (target space + shared-list name). No database.
+`.specify/extensions/clickup/config.yml` (target space + shared-list name). No database.
 
 **Testing**: Follows the template's local-gate model (`npm run check:all` +
 `npm run test:release`) — the extension's bash helpers get shell-level tests in the same

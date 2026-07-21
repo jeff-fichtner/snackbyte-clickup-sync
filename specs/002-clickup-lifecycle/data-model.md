@@ -95,7 +95,7 @@ honors it when present, else uses defaults unchanged.
 - `card.provenanceHash` dedups provenance so re-runs add no duplicate links (SC-009).
 - Unknown fields are ignored by older readers; `schemaVersion` stays `1` (additive change).
 
-## Extended config — `.specify/extensions/clickup-sync/config.yml`
+## Extended config — `.specify/extensions/clickup/config.yml`
 
 ```yaml
 space: "<your-space-name>"

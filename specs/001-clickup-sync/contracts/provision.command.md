@@ -10,7 +10,7 @@ into the active feature's manifest — so later sync runs never discover or gues
 ## Preconditions
 
 - ClickUp MCP server connected.
-- `.specify/extensions/clickup-sync/config.yml` filled (`space`, `list` not placeholders).
+- `.specify/extensions/clickup/config.yml` filled (`space`, `list` not placeholders).
 - Active feature resolvable via `get_feature_paths()`.
 
 ## Behavior

@@ -1,7 +1,12 @@
 schema_version: "1.0"
 
 extension:
-  id: clickup-sync
+  # Must equal the namespace of every command below: Spec Kit rejects the install
+  # outright ("must use extension namespace") unless each primary command matches
+  # `speckit.<id>.<verb>`. The commands have always been `speckit.clickup.*`, so
+  # the id is `clickup` and the install directory follows it. Do not rename this
+  # back to `clickup-sync` without renaming every command with it.
+  id: clickup
   name: "ClickUp Task Sync"
   version: "1.0.0"
   description: "The ClickUp plug of snackbyte-speckit-engine. Mirrors each Spec Kit feature into ClickUp as one feature-card in a shared list, with a subtask per user story (native dependency links), a markdown checkbox list of the tasks.md lines, a verbose body, and a six-state lifecycle status (open→in-design→ready→in-development→in-review→done) that advances on every command. Adds /speckit-verify (earn in-review) and /speckit-close (reach done). One-way (repo → ClickUp), idempotent, MCP-only."
