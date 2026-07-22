@@ -9,7 +9,7 @@ report (it never edits files). This command takes that report and **applies the
 fixes that are unambiguous**, then **re-runs the analysis and re-presents the
 results** so what remains is only the judgment-dependent work.
 
-See the `speckit-analyze-autofix` skill for the full procedure. In short:
+See the `speckit-analyze-autofix-run` skill for the full procedure. In short:
 
 1. Take the findings table from the just-completed analysis.
 2. For each finding with a **single obvious correct fix**, apply it directly to

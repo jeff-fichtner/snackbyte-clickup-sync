@@ -18,7 +18,7 @@ hooks:
     condition: null
   after_specify:
   - extension: specify
-    command: speckit.specify.review-loop
+    command: speckit.specify-review-loop.run
     enabled: true
     optional: false
     priority: 5
@@ -62,7 +62,7 @@ hooks:
     condition: null
   after_analyze:
   - extension: analyze
-    command: speckit.analyze.autofix
+    command: speckit.analyze-autofix.run
     enabled: true
     optional: true
     priority: 10

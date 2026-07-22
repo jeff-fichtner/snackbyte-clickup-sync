@@ -15,15 +15,15 @@ is work that needs the user's judgment.
   conflicting requirements, vague-criteria targets, MUST conflicts that change the
   design, or any finding with multiple reasonable fixes.
 
-This split is fixed by the bundled skill (`speckit-analyze-autofix`).
+This split is fixed by the bundled skill (`speckit-analyze-autofix-run`).
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `speckit.analyze.autofix` | Apply unambiguous analysis fixes and re-present the report. |
+| `speckit.analyze-autofix.run` | Apply unambiguous analysis fixes and re-present the report. |
 
-Invoked as `/speckit-analyze-autofix`.
+Invoked as `/speckit-analyze-autofix-run`.
 
 ## Hook wiring
 

@@ -17,15 +17,15 @@ nothing fixable remains or an issue needs the user's direct attention.
 - **Surfaces** anything requiring judgment (conflicting requirements, vague
   targets that are product decisions, MUST conflicts that change scope).
 
-This behavior is fixed by the bundled skill (`speckit-specify-review-loop`).
+This behavior is fixed by the bundled skill (`speckit-specify-review-loop-run`).
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `speckit.specify.review-loop` | Recursively review-and-fix the spec until clean or blocked on the user. |
+| `speckit.specify-review-loop.run` | Recursively review-and-fix the spec until clean or blocked on the user. |
 
-Invoked as `/speckit-specify-review-loop`.
+Invoked as `/speckit-specify-review-loop-run`.
 
 ## Hook wiring
 
