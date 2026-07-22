@@ -8,7 +8,7 @@ argument-hint: "Optional target: spec (default) | code"
 A single recursive-review pattern with **two targets** (engine module, FR-037):
 
 - **`target: spec`** (default) — run after `/speckit-specify`: review the just-written `spec.md`.
-- **`target: code`** — invoked by `/speckit-verify`: review the implemented **code + tests** for
+- **`target: code`** — invoked by `/speckit-engine-verify`: review the implemented **code + tests** for
   the active feature.
 
 The recursion is identical; only *what is read* and *what "fixable" means* differ by target.
@@ -34,11 +34,11 @@ Read the target from the argument (`$ARGUMENTS`): `code` selects code review; an
    need a product/user decision (spec) or a judgment call the human must make (code) — then
    surface those for the user. Always terminate (bounded passes); never loop indefinitely.
 
-## Contract for the `code` target (used by `/speckit-verify`)
+## Contract for the `code` target (used by `/speckit-engine-verify`)
 
 - Return a clear **pass/needs-attention** signal: *pass* = nothing fixable remains and no
   attention-needing findings; *needs-attention* = at least one unresolved finding that requires
-  the human. `/speckit-verify` treats *needs-attention* as a stop (does not advance to
+  the human. `/speckit-engine-verify` treats *needs-attention* as a stop (does not advance to
   `in-review`).
 - Never advance any tracker state itself — that is the verify command's job.
 - Never modify repo artifacts based on tracker state (Constitution I).

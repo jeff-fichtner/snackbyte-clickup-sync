@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for clickup-manifest.sh — manifest read/merge/write + stable hashing.
-# Run: bash .specify/extensions/clickup/scripts/bash/clickup-manifest.test.sh
+# Tests for manifest.sh — manifest read/merge/write + stable hashing.
+# Run: bash .specify/extensions/engine/scripts/bash/manifest.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-M="$DIR/clickup-manifest.sh"
+M="$DIR/manifest.sh"
 FAIL_F="$(mktemp)"
 ok()  { printf '  ok   %s\n' "$1"; }
 bad() { echo x >> "$FAIL_F"; printf '  FAIL %s — %s\n' "$1" "$2"; }

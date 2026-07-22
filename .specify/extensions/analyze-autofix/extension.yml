@@ -1,7 +1,7 @@
 schema_version: "1.0"
 
 extension:
-  id: analyze-autofix
+  id: analyze
   name: "Analyze Auto-Fix"
   version: "1.0.0"
   description: "After /speckit-analyze: apply the unambiguous fixes from the analysis report to spec.md / plan.md / tasks.md, then re-present the analysis so remaining (judgment-dependent) findings are clear"

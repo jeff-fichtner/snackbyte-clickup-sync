@@ -26,13 +26,13 @@ dependency edges from the spec's story order (from 001, unchanged).
 | 2 | `in-design` | after specify / clarify / plan | `spec.md` present |
 | 3 | `ready` | after tasks / analyze | `tasks.md` present (design complete) |
 | 4 | `in-development` | after implement (and converge) | recorded `implementStarted` marker |
-| 5 | `in-review` | `/speckit-verify` passes | recorded `verifyPassed` marker |
-| 6 | `done` | `/speckit-close` + sign-off | recorded `closedOut` marker |
+| 5 | `in-review` | `/speckit-engine-verify` passes | recorded `verifyPassed` marker |
+| 6 | `done` | `/speckit-engine-close` + sign-off | recorded `closedOut` marker |
 
 **Transitions**: strictly forward in the normal flow; the engine re-derives on every command. States
 1–3 derive from artifact presence (idempotent). States **4–6 require a recorded marker** — set by
-the after_implement sync (`implementStarted`), `/speckit-verify` (`verifyPassed`), and
-`/speckit-close` (`closedOut`) respectively, never inferred.
+the after_implement sync (`implementStarted`), `/speckit-engine-verify` (`verifyPassed`), and
+`/speckit-engine-close` (`closedOut`) respectively, never inferred.
 
 > **Why state 4 needs a marker** (found during implementation): `ready` (tasks written) and
 > `in-development` (implement run) have the **same artifacts** — spec + plan + tasks all present —
@@ -72,8 +72,8 @@ honors it when present, else uses defaults unchanged.
   },
   "lifecycle": {                             // NEW — the recorded markers for states 4–6
     "implementStarted": false,               // set true by the after_implement sync
-    "verifyPassed": false,                   // set true by /speckit-verify on pass
-    "closedOut": false                       // set true by /speckit-close on sign-off
+    "verifyPassed": false,                   // set true by /speckit-engine-verify on pass
+    "closedOut": false                       // set true by /speckit-engine-close on sign-off
   },
   "card": {
     "id": "86abcd123",

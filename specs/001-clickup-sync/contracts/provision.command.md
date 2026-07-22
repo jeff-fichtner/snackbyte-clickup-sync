@@ -25,7 +25,7 @@ into the active feature's manifest — so later sync runs never discover or gues
    not-started / in-progress / done. If any cannot be represented, **stop and name the
    missing statuses**; write nothing (FR-012, SC-007).
 5. Write `workspaceId`, `spaceId`, `listId`, `statusMapping`, `feature` into
-   `specs/<feature>/.clickup-sync.json` via `clickup-manifest.sh` (merge, don't clobber
+   `specs/<feature>/.clickup-sync.json` via `manifest.sh` (merge, don't clobber
    existing `card`/`userStories`).
 6. Idempotent: re-running finds everything and rewrites the same values (SC-008).
 

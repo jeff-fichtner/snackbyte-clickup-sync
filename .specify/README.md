@@ -47,9 +47,9 @@ alongside (FR-038).
 
 | Concern | Engine or plug | Location today |
 |---|---|---|
-| Lifecycle status derivation | engine logic | `extensions/clickup/scripts/bash/clickup-derive-status.sh` (to be generalized) |
-| Manifest / idempotence index | engine logic | `extensions/clickup/scripts/bash/clickup-manifest.sh` (to be generalized) |
-| `tasks.md` parsing | engine logic | `extensions/clickup/scripts/bash/clickup-parse-tasks.sh` (to be generalized) |
+| Lifecycle status derivation | engine logic | `extensions/engine/scripts/bash/derive-status.sh` (to be generalized) |
+| Manifest / idempotence index | engine logic | `extensions/engine/scripts/bash/manifest.sh` (to be generalized) |
+| `tasks.md` parsing | engine logic | `extensions/engine/scripts/bash/parse-tasks.sh` (to be generalized) |
 | ClickUp I/O (MCP orchestration) | ClickUp plug | `extensions/clickup/commands/*.md` |
 | Local plug (zero-tracker default) | engine (built-in plug) | not yet built — target of `002` |
 | Close-out / handoff ceremony | engine | not yet built — specified in `002` (US1/US2) |

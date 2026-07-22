@@ -19,9 +19,9 @@ verbose body, and a derived status. One-way, idempotent, cheap. (US1, US2, US5.)
 1. Resolve feature dir; load manifest.
 2. **Derive** (repo-side, `clickup-*` bash helpers, no MCP):
    - card body (spec summary + US list + artifact links),
-   - user stories + their `- [ ] T00x` checkbox lines grouped by US (`clickup-parse-tasks.sh`),
+   - user stories + their `- [ ] T00x` checkbox lines grouped by US (`parse-tasks.sh`),
    - US dependency edges (document-order default; research Decision 3),
-   - status (`clickup-derive-status.sh`),
+   - status (`derive-status.sh`),
    - a content hash per element.
 3. **Diff** each element's fresh hash against the manifest → create / update / skip. Skipped
    elements incur **zero** MCP calls (SC-002).

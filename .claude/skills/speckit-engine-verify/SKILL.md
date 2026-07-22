@@ -1,17 +1,17 @@
 ---
-name: "speckit-verify"
+name: "speckit-engine-verify"
 description: "Certify a completed feature: recursive code review + full unit gate + automatable E2E, then advance the card to in-review."
 argument-hint: "(no arguments)"
 compatibility: "Requires spec-kit project structure with .specify/ directory; the ClickUp plug is optional"
 metadata:
   author: "snackbyte"
-  source: ".specify/extensions/clickup/commands/speckit.verify.md"
+  source: ".specify/extensions/engine/commands/speckit.engine.verify.md"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 Execute the verify command. The authoritative command body lives at
-`.specify/extensions/clickup/commands/speckit.verify.md` — read it and follow its steps
+`.specify/extensions/engine/commands/speckit.engine.verify.md` — read it and follow its steps
 exactly.
 
 Run after `/speckit-implement`. In order, stopping on the first failure: (1) recursive code review

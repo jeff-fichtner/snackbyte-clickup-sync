@@ -14,7 +14,7 @@ rules, and linking GitHub commits/PRs to tracker items."
 > This spec supersedes the original `BACKLOG.md` that formerly lived in this directory; the
 > backlog's six tracks (§0–§5) are fully captured as user stories below (US1–US7) and it has been
 > removed. Section references like "§0"/"§5" throughout refer to those original backlog tracks.
-> Two further user stories were added during design (US8 `/speckit-verify`, US9 consolidating
+> Two further user stories were added during design (US8 `/speckit-engine-verify`, US9 consolidating
 > snackbyte's lifecycle extensions into the engine) — see the Clarifications section.
 
 **Engine vs. plug — how to read this spec.** This feature specifies **snackbyte-speckit-engine**:
@@ -30,7 +30,7 @@ This feature builds on the shipped **ClickUp plug** (`001-clickup-sync`: one-way
 idempotent, scaffolding-only) without revisiting its core mapping (feature = tracker item, user
 story = subtask, `tasks.md` line = checklist item). It generalizes that plug's proven model into
 the engine and extends it along the tracks drawn from this feature's original backlog (US1–US7),
-plus two design-time additions (US8 `/speckit-verify`, US9 extension consolidation). Each user
+plus two design-time additions (US8 `/speckit-engine-verify`, US9 extension consolidation). Each user
 story is a separately deliverable slice; the priorities below reflect the backlog's own ordering
 (§0 and the lifecycle first, enrichment later) with the two P1 additions folded in.
 
@@ -39,12 +39,12 @@ story is a separately deliverable slice; the priorities below reflect the backlo
 ### Session 2026-07-11
 
 - Q: How is the close-out ceremony (US2) invoked? → A: A distinct user-invoked command
-  (`/speckit-close`), run when the human is ready — not tied to a lifecycle hook.
+  (`/speckit-engine-close`), run when the human is ready — not tied to a lifecycle hook.
 - Q: Where does the test gate run, and what happens on a red gate? → A: The gate runs inside the
-  new `/speckit-verify` command (after implement + converge), not in the `after_implement` chain. A
+  new `/speckit-engine-verify` command (after implement + converge), not in the `after_implement` chain. A
   red gate stops verify and blocks the `in-review` transition; the card stays at `in-development`
   until the gate is green. (This refined an earlier "hard-stop the after_implement chain" idea once
-  `/speckit-verify` became the home of the gate.)
+  `/speckit-engine-verify` became the home of the gate.)
 - Q: Which mechanism links commit/PR provenance onto the card (US6)? → A: Both — ship Option A
   (MCP-pushed by our extension, self-contained) now; leave Option B (ClickUp's native GitHub
   integration) as a documented opt-in for teams that connect GitHub. Refinement: A and B are
@@ -64,9 +64,9 @@ story is a separately deliverable slice; the priorities below reflect the backlo
   visible as work). Subtasks stay three-state (units of work). The AI is the sole tracker writer;
   humans signal via the flow (US4 reframed — see below).
 - Q: How is `in-review` earned, and what runs between implement and review? → A: A new
-  `/speckit-verify` command (US8): implement → converge (always) → `/speckit-verify` (recursive
+  `/speckit-engine-verify` command (US8): implement → converge (always) → `/speckit-engine-verify` (recursive
   code review + full unit gate + automatable E2E) → only on pass does the card reach `in-review`.
-  Then `/speckit-close` handles sign-off → `done`. Verify and close are two distinct commands.
+  Then `/speckit-engine-close` handles sign-off → `done`. Verify and close are two distinct commands.
 - Q: Should snackbyte's scattered Spec Kit extensions be consolidated here? → A: Yes (US9) — the
   five snackbyte-authored extensions (git-specify-branch, specify-review-loop, analyze-autofix,
   git-commit, clickup-sync) become command-modules of the one engine; the recursive-review module
@@ -86,7 +86,7 @@ end-to-end path as far as is automatable, then produce an honest handoff of what
 versus what remains — so that "tested" means actually exercised, not asserted, and I only get
 the genuinely-manual remainder.
 
-> US1 defines the **test-and-handoff capability**; US8 (`/speckit-verify`) is the **command that
+> US1 defines the **test-and-handoff capability**; US8 (`/speckit-engine-verify`) is the **command that
 > runs it** at the right lifecycle moment and, on success, earns the `in-review` state. They are
 > the same gate viewed as capability (US1) vs. invocation + state transition (US8).
 
@@ -168,8 +168,8 @@ logical states, each a real transition a watcher can see:
 | 2 | `in-design` | `after_specify` (also clarify, plan) | artifacts being written |
 | 3 | `ready` | `after_tasks` / `after_analyze` | designing done, code not started |
 | 4 | `in-development` | `after_implement` | code being written |
-| 5 | `in-review` | `/speckit-verify` passes (after converge) | AI reviewed + tested everything it can; awaits human sign-off |
-| 6 | `done` | `/speckit-close` + sign-off | complete |
+| 5 | `in-review` | `/speckit-engine-verify` passes (after converge) | AI reviewed + tested everything it can; awaits human sign-off |
+| 6 | `done` | `/speckit-engine-close` + sign-off | complete |
 
 **Config-mapped names, fall back to 3.** These six are *logical* states; each project maps them
 onto its list's **actual** status names in config (my "in-design" may be another list's "scoping").
@@ -208,17 +208,17 @@ read-only mirror I can watch; it is not something I drive.
 **Why this priority**: This is §2, and it resolves the correctness constraint 001 deferred — but
 in a simpler way than "protect human-set statuses." Because the AI is the *only* writer, there is
 no competing human write-path to reconcile in the normal flow. The card reaches `in-review` (state
-5) only when the AI has done everything it can — `/speckit-verify` (US8) has passed — and rests
+5) only when the AI has done everything it can — `/speckit-engine-verify` (US8) has passed — and rests
 there; when the human returns and runs close-out, the AI advances it to `done` on sign-off.
 
-**Independent Test**: Drive a feature through `/speckit-verify` → the AI sets the card to
+**Independent Test**: Drive a feature through `/speckit-engine-verify` → the AI sets the card to
 `in-review` and leaves it (no human tracker action needed); the card visibly waits. Run close-out
 and sign off in the flow → the AI advances the card to `done`. At no point is a human required to
 edit the tracker.
 
 **Acceptance Scenarios**:
 
-1. **Given** the AI has taken the feature as far as it can (`/speckit-verify` passed), **When** the
+1. **Given** the AI has taken the feature as far as it can (`/speckit-engine-verify` passed), **When** the
    sync runs, **Then** the AI sets the card to `in-review` and it rests there — no human tracker
    action is needed to reach or hold that state.
 2. **Given** the human returns and runs close-out, **When** they sign off in the flow, **Then** the
@@ -296,7 +296,7 @@ with no ruleset the baked-in defaults are used unchanged.
 
 ---
 
-### User Story 8 - `/speckit-verify` earns the review state (Priority: P1)
+### User Story 8 - `/speckit-engine-verify` earns the review state (Priority: P1)
 
 As a developer, after implementation I want one command that makes the AI do **everything it can to
 certify the work** — recursively review the code it wrote, then run the full unit gate and every
@@ -309,26 +309,26 @@ trigger and a specific outcome (the state transition). Without it, the card coul
 un-reviewed, un-tested work.
 
 **The sequence**: `/speckit-implement` → `after_implement` chain always runs `converge` (which may
-append unbuilt work as tasks) → the developer runs **`/speckit-verify`**, which: (a) recursively
+append unbuilt work as tasks) → the developer runs **`/speckit-engine-verify`**, which: (a) recursively
 reviews the implemented code + tests (the same recursive-review pattern as spec review, pointed at
 code — see US9); (b) runs the full unit check gate, which MUST pass; (c) runs every automatable
 E2E as far as the tooling allows (the US1 gate); (d) on success, marks the card `in-review`. On
 failure at any step, it stops, reports, and does NOT advance to `in-review`.
 
-**Independent Test**: On a feature whose implementation is complete and green, run `/speckit-verify`
+**Independent Test**: On a feature whose implementation is complete and green, run `/speckit-engine-verify`
 → it reviews the code, runs the unit gate + automatable E2E, and advances the card to `in-review`.
-On a feature with a failing gate or unreviewed issues, `/speckit-verify` stops with the failure and
+On a feature with a failing gate or unreviewed issues, `/speckit-engine-verify` stops with the failure and
 the card stays at `in-development` — it is never marked `in-review` over failing verification.
 
 **Acceptance Scenarios**:
 
-1. **Given** a completed implementation, **When** `/speckit-verify` runs, **Then** it recursively
+1. **Given** a completed implementation, **When** `/speckit-engine-verify` runs, **Then** it recursively
    reviews the code, runs the full unit gate and all automatable E2E, and — only if all pass —
    marks the card `in-review`.
 2. **Given** the unit gate is red or the review surfaces an unresolved issue, **When**
-   `/speckit-verify` runs, **Then** it stops, reports, and leaves the card at `in-development` (never
+   `/speckit-engine-verify` runs, **Then** it stops, reports, and leaves the card at `in-development` (never
    `in-review`).
-3. **Given** `/speckit-verify` passed, **When** the developer later runs close-out (US2), **Then**
+3. **Given** `/speckit-engine-verify` passed, **When** the developer later runs close-out (US2), **Then**
    close-out proceeds from the verified `in-review` state to sign-off → `done`.
 
 ---
@@ -356,7 +356,7 @@ engine is **follow-on work, out of scope** here (build the engine first; adoptio
 
 **One review module, two targets**: the consolidated recursive-review module reviews whatever
 artifact it is pointed at — the **spec** (after specify, the existing behavior) or the **code +
-tests** (inside `/speckit-verify`, US8). One pattern, two invocation points; the review logic lives
+tests** (inside `/speckit-engine-verify`, US8). One pattern, two invocation points; the review logic lives
 once.
 
 **Independent Test**: Install the engine into a clean repo → the full lifecycle spine is available
@@ -371,7 +371,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
    checkpoint, ClickUp plug) are all available from the one engine, exposing the same behavior as
    the former standalone extensions.
 2. **Given** the recursive-review module, **When** it is invoked after specify vs. inside
-   `/speckit-verify`, **Then** the same review pattern runs against the spec vs. the code/tests
+   `/speckit-engine-verify`, **Then** the same review pattern runs against the spec vs. the code/tests
    respectively — one implementation, two targets.
 3. **Given** the upstream `agent-context` extension, **When** the engine is installed, **Then**
    `agent-context` is neither absorbed nor broken — it remains a separate community extension the
@@ -381,11 +381,11 @@ predecessors did; `agent-context` is untouched and still installable alongside.
 
 ### Edge Cases
 
-- **Red gate at close-out**: close-out (`/speckit-close`) re-runs the check gate first; if it is
+- **Red gate at close-out**: close-out (`/speckit-engine-close`) re-runs the check gate first; if it is
   red, close-out refuses to proceed (no sign-off, no final sync, no commit) and surfaces the
   failure. It never closes over a red gate.
 - **Converge adds work after verify**: `converge` runs in the `after_implement` chain and may
-  append unbuilt tasks. Because `in-review` is only reachable through a passing `/speckit-verify`
+  append unbuilt tasks. Because `in-review` is only reachable through a passing `/speckit-engine-verify`
   (FR-034/035), any converge-added work is still subject to verify — a feature can't reach review
   with unbuilt work outstanding.
 - **Manual item mistaken for spec-driven** (or vice versa) in a shared list — structurally
@@ -416,7 +416,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
   lives; what was verified automatically (with evidence) vs. what remains manual and why; any
   follow-ups/known gaps; and the exact manual steps left for the human.
 - **FR-005**: A red check gate MUST prevent a "verified" handoff (fail-loud).
-- **FR-006**: The test gate runs inside `/speckit-verify` (US8), after `implement` and `converge`.
+- **FR-006**: The test gate runs inside `/speckit-engine-verify` (US8), after `implement` and `converge`.
   A red gate MUST stop verify — it reports the failure and does NOT advance the card to `in-review`
   (see FR-034). The flow only proceeds once the gate passes.
 
@@ -434,7 +434,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
 - **FR-010a**: Close-out MUST re-run the phase-A check gate (FR-001) before it surfaces tasks for
   sign-off; a red gate MUST make close-out refuse to proceed (no sign-off, no final sync, no
   commit), surfacing the failure — close-out never closes over a red gate.
-- **FR-011**: Close-out MUST be a distinct user-invoked command (`/speckit-close`), run when the
+- **FR-011**: Close-out MUST be a distinct user-invoked command (`/speckit-engine-close`), run when the
   human is ready — NOT wired to an automatic lifecycle hook (it is human-paced: it waits for
   sign-off on manual verification, which no fixed hook moment can time).
 
@@ -447,8 +447,8 @@ predecessors did; `agent-context` is untouched and still installable alongside.
   set its status to the logical state that command maps to. The command→state mapping is:
   `after_specify`/`after_clarify`/`after_plan` → `in-design`; `after_tasks`/`after_analyze` →
   `ready`; `after_implement` → `in-development`; `after_converge` → stays `in-development` (converge
-  just appends unbuilt work as tasks, it does not certify the feature); `/speckit-verify` (on
-  pass) → `in-review`; `/speckit-close` (on sign-off) → `done`. Several commands may map to the
+  just appends unbuilt work as tasks, it does not certify the feature); `/speckit-engine-verify` (on
+  pass) → `in-review`; `/speckit-engine-close` (on sign-off) → `done`. Several commands may map to the
   same state; the card advances when a command crosses into a new one. Every command produces a
   sync (content and/or status); a command that changes nothing is still a no-op sync, not a
   skipped one.
@@ -459,7 +459,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
 - **FR-013b**: The engine MUST be wired into a sync hook on **every** lifecycle command, which
   requires **new hooks beyond the three 001 uses** (`after_plan`/`after_tasks`/`after_implement`):
   at minimum `after_specify`, `after_analyze`, and `after_converge`, plus the two new commands
-  `/speckit-verify` (US8) and `/speckit-close` (US2). A command with no dedicated sync hook
+  `/speckit-engine-verify` (US8) and `/speckit-engine-close` (US2). A command with no dedicated sync hook
   available MUST still not leave the card stale — the next command that does fire reconciles it.
   Adding these hooks and commands is in scope for this feature.
 - **FR-014**: Unchanged content MUST make zero writes; a status-only change writes only the status
@@ -482,7 +482,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
   human is NEVER required to touch the tracker to advance a feature; human decisions are given to
   the flow (in the terminal, at close-out) and the AI reflects them onto the card. The tracker is a
   read-only mirror for humans.
-- **FR-017a**: The engine MUST reach `in-review` (state 5) only when `/speckit-verify` passes (US8)
+- **FR-017a**: The engine MUST reach `in-review` (state 5) only when `/speckit-engine-verify` passes (US8)
   — never on converge alone — and then **rest there**: the card holds `in-review` with no human
   tracker action, and no further engine write occurs until the human returns and runs close-out.
   "Waiting on a human" is simply the card resting in `in-review` between commands.
@@ -531,16 +531,16 @@ predecessors did; `agent-context` is untouched and still installable alongside.
 
 **Verify command (US8)**
 
-- **FR-033**: The engine MUST provide a `/speckit-verify` command, run after implementation (and
+- **FR-033**: The engine MUST provide a `/speckit-engine-verify` command, run after implementation (and
   after the `after_implement`→converge chain), that in order: (a) recursively reviews the
   implemented code + tests via the consolidated review module (FR-036); (b) runs the full unit
   check gate, which MUST pass; (c) runs every automatable E2E as far as the tooling allows (the US1
   gate, FR-001/002); (d) on success, advances the card to `in-review`.
-- **FR-034**: `/speckit-verify` MUST NOT advance the card to `in-review` if the review surfaces an
+- **FR-034**: `/speckit-engine-verify` MUST NOT advance the card to `in-review` if the review surfaces an
   unresolved issue, the unit gate is red, or a required verification step fails — it stops, reports,
   and leaves the card at `in-development`. `in-review` is reachable ONLY through a passing verify.
 - **FR-035**: `converge` MUST NOT by itself advance the card past `in-development`; it appends
-  unbuilt work as tasks. Any converge-added work is therefore still subject to `/speckit-verify`
+  unbuilt work as tasks. Any converge-added work is therefore still subject to `/speckit-engine-verify`
   before review — the feature cannot reach `in-review` with unbuilt converge work outstanding.
 
 **Consolidate snackbyte lifecycle extensions (US9)**
@@ -550,7 +550,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
   as command-modules of the one engine extension, each preserving its prior behavior. The engine
   exposes all lifecycle commands plus the tracker-plug interface from a single installed package.
 - **FR-037**: The recursive-review module MUST be a single implementation that reviews either the
-  **spec** (after specify) or the **code + tests** (inside `/speckit-verify`, FR-033) depending on
+  **spec** (after specify) or the **code + tests** (inside `/speckit-engine-verify`, FR-033) depending on
   the target it is pointed at — one pattern, two invocation points; the review logic is not
   duplicated.
 - **FR-038**: The upstream `agent-context` extension (authored by `spec-kit-core`) MUST NOT be
@@ -631,7 +631,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
 - **SC-013**: The engine produces a correct lifecycle with zero external plugs (local plug only),
   one plug, and many plugs; adding or removing a plug changes only how many trackers are mirrored,
   never the derived lifecycle — an uninstalled plug causes no error.
-- **SC-014**: A card reaches `in-review` only after `/speckit-verify` passes (code review + green
+- **SC-014**: A card reaches `in-review` only after `/speckit-engine-verify` passes (code review + green
   unit gate + automatable E2E) — 0% of features reach `in-review` with a red gate or unresolved
   review findings; `converge` alone never advances past `in-development`.
 - **SC-015**: The engine exposes the five consolidated snackbyte lifecycle modules (branch-setup,
@@ -673,7 +673,7 @@ predecessors did; `agent-context` is untouched and still installable alongside.
   status machine — it is the close-out ceremony (US2), which is the path to "done" for any feature
   with manual tasks. The sync never advances a card to "done" while unchecked manual tasks remain.
 - **Resolved design forks**: the genuine forks (close-out trigger, red-gate failure contract,
-  provenance mechanism, manual-item discriminator, the six-state lifecycle, the `/speckit-verify`
+  provenance mechanism, manual-item discriminator, the six-state lifecycle, the `/speckit-engine-verify`
   handoff, and extension consolidation) were decided across the design sessions — see the
   `## Clarifications` section. No open clarification markers remain.
 - **Carried-over validation from 001 (SC-007 negative path)**: 001's live validation (T030,

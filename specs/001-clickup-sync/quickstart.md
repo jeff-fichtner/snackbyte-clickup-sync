@@ -17,8 +17,8 @@ covered by shell tests). Maps each step to the success criteria it demonstrates.
 
 ```bash
 # From repo root, confirm the extension's shell helpers pass their unit tests (no ClickUp needed):
-bash .specify/extensions/clickup/scripts/bash/clickup-parse-tasks.test.sh
-bash .specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh
+bash .specify/extensions/engine/scripts/bash/parse-tasks.test.sh
+bash .specify/extensions/engine/scripts/bash/derive-status.test.sh
 ```
 
 ## Scenario 1 — Provision (US3 / SC-007, SC-008)

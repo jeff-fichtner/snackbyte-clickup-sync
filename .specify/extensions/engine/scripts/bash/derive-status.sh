@@ -8,8 +8,8 @@
 #   in-design      : spec.md present (specify/clarify/plan)
 #   ready          : tasks.md present (design complete, code not started)
 #   in-development : manifest lifecycle.implementStarted == true (/speckit-implement ran)
-#   in-review      : manifest lifecycle.verifyPassed == true (/speckit-verify passed)
-#   done           : manifest lifecycle.closedOut == true (/speckit-close signed off)
+#   in-review      : manifest lifecycle.verifyPassed == true (/speckit-engine-verify passed)
+#   done           : manifest lifecycle.closedOut == true (/speckit-engine-close signed off)
 #   States 1–3 derive purely from artifact presence (idempotent). States 4–6 read recorded
 #   markers from the manifest — because `ready` (tasks written) and `in-development` (implement
 #   run) share the same artifacts (spec+plan+tasks), artifact presence alone cannot distinguish
@@ -19,7 +19,7 @@
 # SUBTASK (three states — a user story is a unit of work, FR-016; the 001 behavior, unchanged):
 #   not-started | in-progress | done  from that story's own task completion.
 #
-# Usage:  clickup-derive-status.sh [--dir <feature dir>] [--card | --us <US#>] [--manifest <path>]
+# Usage:  derive-status.sh [--dir <feature dir>] [--card | --us <US#>] [--manifest <path>]
 #   --dir       feature directory (default: active feature via get_feature_paths)
 #   --card      derive the six-state CARD status (default when neither --card nor --us given)
 #   --us <US#>  derive the three-state status of a single user story from its own tasks
@@ -69,7 +69,7 @@ if [[ "$MODE" == "us" ]]; then
     if [[ ! -f "$TASKS" ]] || ! has_jq; then
         echo "not-started"; exit 0
     fi
-    counts="$(bash "$SCRIPT_DIR/clickup-parse-tasks.sh" --file "$TASKS" \
+    counts="$(bash "$SCRIPT_DIR/parse-tasks.sh" --file "$TASKS" \
         | jq -r --arg us "$US" '(.groups[] | select(.us==$us)) as $g
             | if $g == null then "0 0"
               else "\([$g.items[]|select(.done)]|length) \($g.items|length)" end' 2>/dev/null || echo "0 0")"

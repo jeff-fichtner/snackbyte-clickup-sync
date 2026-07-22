@@ -74,24 +74,24 @@ every ClickUp-facing story.
 
 ### Shared deterministic helpers (used by US3 and downstream)
 
-- [X] T007 [P] Extend `.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh` to
+- [X] T007 [P] Extend `.specify/extensions/engine/scripts/bash/derive-status.sh` to
       emit the six card-level logical states (open/in-design/ready/in-development/in-review/done)
       from artifact presence + triggering command + manifest `lifecycle` markers, keeping subtasks
       three-state (per contracts/status-model.md, research Decision 3)
-- [X] T008 [P] Create `.specify/extensions/clickup/scripts/bash/clickup-status-map.sh` —
+- [X] T008 [P] Create `.specify/extensions/engine/scripts/bash/status-map.sh` —
       logical→actual status mapping from config + the deterministic 3-fallback collapse
       (nearest-status), per FR-015 / research Decision 4
-- [X] T009 [US9] Extend `.specify/extensions/clickup/scripts/bash/clickup-manifest.sh` for the
+- [X] T009 [US9] Extend `.specify/extensions/engine/scripts/bash/manifest.sh` for the
       additive fields (`lifecycle.verifyPassed`/`closedOut`, `card.provenanceHash`, six-state
       `statusMapping`) per data-model.md, keeping `schemaVersion` "1" and all changes additive
-- [X] T010 [P] Test `clickup-derive-status.sh` six-state derivation in
-      `.specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh` (each state's
+- [X] T010 [P] Test `derive-status.sh` six-state derivation in
+      `.specify/extensions/engine/scripts/bash/derive-status.test.sh` (each state's
       trigger condition; subtasks stay three-state; markers gate states 5–6)
-- [X] T011 [P] Test `clickup-status-map.sh` in
-      `.specify/extensions/clickup/scripts/bash/clickup-status-map.test.sh` (full six-status
+- [X] T011 [P] Test `status-map.sh` in
+      `.specify/extensions/engine/scripts/bash/status-map.test.sh` (full six-status
       map; degenerate three-status list collapses correctly; reports degradation)
 - [X] T012 [P] Test the manifest extensions in
-      `.specify/extensions/clickup/scripts/bash/clickup-manifest.test.sh` (lifecycle markers
+      `.specify/extensions/engine/scripts/bash/manifest.test.sh` (lifecycle markers
       round-trip, provenanceHash, six-state mapping, no clobber of existing fields, no-jq fallback)
 
 **Checkpoint**: The engine spine is wired and the shared helpers pass under `npm run check:all` —
@@ -110,15 +110,15 @@ degrades cleanly (quickstart Scenarios 1, 2).
 
 - [X] T013 [US3] Extend `.specify/extensions/clickup/commands/speckit.clickup.provision.md`
       to create the card in `open` at provision (FR-013a) and resolve/record the six-state
-      `statusMapping` (via `clickup-status-map.sh`), writing the `statuses:` config block
+      `statusMapping` (via `status-map.sh`), writing the `statuses:` config block
 - [X] T014 [US3] Extend `.specify/extensions/clickup/commands/speckit.clickup.sync.md` to set
-      the card's six-state status from `clickup-derive-status.sh` + `clickup-status-map.sh` on every
+      the card's six-state status from `derive-status.sh` + `status-map.sh` on every
       run, and subtasks' three-state status; only write status when it changed (FR-013/014)
 - [X] T015 [US3] Wire the new sync hooks in `.specify/extensions.yml`: `after_specify` (→in-design),
       `after_analyze` (→ready), `after_converge` (→stays in-development), alongside existing
       after_plan/after_tasks/after_implement (FR-013b, research Decision 5)
 - [X] T016 [US3] In sync, implement the config'd logical→actual mapping + 3-fallback path end to end
-      (call `clickup-status-map.sh`, report degradation) so a reduced-status list never fails (FR-015)
+      (call `status-map.sh`, report degradation) so a reduced-status list never fails (FR-015)
 
 **Checkpoint**: MVP — the card moves on every command through the six states, config-mapped and
 degradable (quickstart 1–2). This is the demoable core of the engine.
@@ -132,7 +132,7 @@ automatable, and produce the honest verified-vs-manual report. This is the capab
 (US8) and close (US2) commands invoke, so it is built **before** them.
 
 > Ordered before US8/US2 because they call this capability (fixes the earlier ordering inversion:
-> the gate logic is a dependency of `/speckit-verify`, not a follow-on).
+> the gate logic is a dependency of `/speckit-engine-verify`, not a follow-on).
 
 **Independent Test**: Green feature → gate + E2E run, report lists verified/manual with evidence;
 red gate → fails loud, no "verified" handoff (quickstart 3, US1 scenarios).
@@ -150,15 +150,15 @@ red gate → fails loud, no "verified" handoff (quickstart 3, US1 scenarios).
 
 ---
 
-## Phase 5: User Story 8 - `/speckit-verify` earns the review state (Priority: P1)
+## Phase 5: User Story 8 - `/speckit-engine-verify` earns the review state (Priority: P1)
 
 **Goal**: A verify command that recursively reviews the code, runs the unit gate + automatable E2E,
 and only on success advances the card to `in-review`.
 
-**Independent Test**: On a green feature, `/speckit-verify` → review + gate + E2E → `in-review`; on
+**Independent Test**: On a green feature, `/speckit-engine-verify` → review + gate + E2E → `in-review`; on
 a red gate or unresolved finding, it stops and the card stays `in-development` (quickstart 3).
 
-- [X] T017 [US8] Write `.specify/extensions/clickup/commands/speckit.verify.md` implementing
+- [X] T017 [US8] Write `.specify/extensions/clickup/commands/speckit.engine.verify.md` implementing
       contracts/verify.command.md: step 1 recursive code review (invoke the review module with
       `target: code`, T005), step 2 full unit gate (invoke the US1 capability T024, must pass), step
       3 automatable E2E (best-effort, report the rest), step 4 on pass set `lifecycle.verifyPassed`
@@ -169,7 +169,7 @@ a red gate or unresolved finding, it stops and the card stays `in-development` (
 - [X] T019 [US8] In verify, emit the handoff report by invoking the US1 handoff capability (T025)
       — verified-automatically vs. remaining-manual with evidence, in the flow (FR-004), no
       committed HANDOFF file
-- [X] T020 [P] [US8] Create the skill mirror `.claude/skills/speckit-verify/SKILL.md` pointing at
+- [X] T020 [P] [US8] Create the skill mirror `.claude/skills/speckit-engine-verify/SKILL.md` pointing at
       the verify command
 
 **Checkpoint**: `in-review` is reachable only through a passing verify (quickstart 3, SC-014).
@@ -181,17 +181,17 @@ a red gate or unresolved finding, it stops and the card stays `in-development` (
 **Goal**: A terminal close-out command: re-run gate → confirm completeness → surface manual tasks →
 sign-off → mark done → final sync → commit → `done`.
 
-**Independent Test**: From `in-review`, `/speckit-close` surfaces manual tasks and waits; on sign-off
+**Independent Test**: From `in-review`, `/speckit-engine-close` surfaces manual tasks and waits; on sign-off
 it checks them, syncs to `done`, and commits — sync itself never commits (quickstart 4).
 
-- [X] T021 [US2] Write `.specify/extensions/clickup/commands/speckit.close.md` implementing
+- [X] T021 [US2] Write `.specify/extensions/clickup/commands/speckit.engine.close.md` implementing
       contracts/close.command.md: re-run gate (red→refuse, FR-010a), confirm non-manual complete
       (FR-010), surface manual tasks + wait for sign-off (never auto-check, FR-007)
 - [X] T022 [US2] In close, on sign-off: mark manual tasks done in `tasks.md`, set
       `lifecycle.closedOut`, run the final sync to `done`/shipped (FR-008), then commit the close-out
       edits as a distinct commit reusing the `git-commit` module — the sync itself makes no commit
       (FR-009)
-- [X] T023 [P] [US2] Create the skill mirror `.claude/skills/speckit-close/SKILL.md` pointing at the
+- [X] T023 [P] [US2] Create the skill mirror `.claude/skills/speckit-engine-close/SKILL.md` pointing at the
       close command
 
 **Checkpoint**: Full lifecycle open→…→done runs end to end (quickstart 4, 5; SC-003/004/012).
@@ -239,10 +239,10 @@ in the same list are still reconciled (quickstart 6, SC-008).
 **Independent Test**: After commits exist, provenance appears on the card; re-run adds no duplicates
 (quickstart 7, SC-009).
 
-- [X] T029 [P] [US6] Create `.specify/extensions/clickup/scripts/bash/clickup-provenance.sh` —
+- [X] T029 [P] [US6] Create `.specify/extensions/engine/scripts/bash/provenance.sh` —
       render the feature's git log into a canonical, hash-deduped block (research Decision 6)
-- [X] T030 [P] [US6] Test `clickup-provenance.sh` in
-      `.specify/extensions/clickup/scripts/bash/clickup-provenance.test.sh` (stable hash for
+- [X] T030 [P] [US6] Test `provenance.sh` in
+      `.specify/extensions/engine/scripts/bash/provenance.test.sh` (stable hash for
       same commits; different commits differ; empty history handled)
 - [X] T031 [US6] In sync, push provenance to the card via MCP (comment/body section), deduped by
       `card.provenanceHash`, staying one-way. Route provenance through a single mode-check
@@ -337,12 +337,12 @@ none → defaults unchanged (spec US7).
 
 ```bash
 # Author the shared helpers together (distinct files):
-Task: "clickup-derive-status.sh six-state extension"   (T007)
-Task: "clickup-status-map.sh + 3-fallback"             (T008)
+Task: "derive-status.sh six-state extension"   (T007)
+Task: "status-map.sh + 3-fallback"             (T008)
 # Then their tests together:
-Task: "clickup-derive-status.test.sh"                  (T010)
-Task: "clickup-status-map.test.sh"                     (T011)
-Task: "clickup-manifest.test.sh"                       (T012)
+Task: "derive-status.test.sh"                  (T010)
+Task: "status-map.test.sh"                     (T011)
+Task: "manifest.test.sh"                       (T012)
 ```
 
 ---

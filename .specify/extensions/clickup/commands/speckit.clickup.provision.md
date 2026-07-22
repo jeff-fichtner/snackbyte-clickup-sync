@@ -15,10 +15,12 @@ the connected ClickUp MCP server — no API/auth code.
 - `.specify/extensions/clickup/config.yml` resolves to real `space`/`list` values via the
   placeholder flow below.
 
-## Config resolution (placeholder → ask → remember)
+## Config resolution (local override → placeholder → ask → remember)
 
-Before doing anything else, resolve `space` and `list` from
-`.specify/extensions/clickup/config.yml`:
+Config is layered. Read `.specify/extensions/clickup/config.local.yml` **first** if it
+exists (gitignored; holds this machine's real `space`/`list`), then fall back to
+`config.yml` (distributed source; ships `<...>` placeholders) for any key the override omits.
+Resolve `space` and `list` from that merged view:
 
 1. If `enabled: false` is set in `config.yml`, the user has previously **declined** ClickUp
    sync for this repo. **Silently do nothing and exit 0** — do NOT ask again. (This is the
@@ -28,10 +30,12 @@ Before doing anything else, resolve `space` and `list` from
 3. If either is still a `<...>` placeholder, **ask the user once**: "This repo isn't wired to a
    ClickUp space/list yet. Give me the ClickUp space name and shared-list name to sync into, or
    say you don't want ClickUp sync here."
-   - **If they provide values** → write them into `config.yml` (replace the placeholders) and
-     continue. The saved values mean this question is never asked again.
-   - **If they decline** → set `enabled: false` in `config.yml` and record a short note, then
-     exit 0. Never ask again on subsequent runs (handled by rule 1). Do not sync.
+   - **If they provide values** → write them into **`config.local.yml`** (the gitignored
+     override), NOT into `config.yml` — the distributed source must keep its placeholders so a
+     fresh install still refuses rather than pointing at someone else's space. The saved values
+     mean this question is never asked again.
+   - **If they decline** → set `enabled: false` in `config.local.yml` and record a short note,
+     then exit 0. Never ask again on subsequent runs (handled by rule 1). Do not sync.
    - Only ask **once per run**; if the user gives an unusable answer, stop with a clear message
      rather than re-prompting in a loop.
 
@@ -40,7 +44,7 @@ Before doing anything else, resolve `space` and `list` from
 1. **Resolve the active feature** and manifest path:
 
    ```bash
-   .specify/extensions/clickup/scripts/bash/clickup-manifest.sh path
+   .specify/extensions/engine/scripts/bash/manifest.sh path
    ```
 
 2. **Read config** — use the `space`/`list` values resolved by the "Config resolution" block
@@ -71,25 +75,25 @@ Before doing anything else, resolve `space` and `list` from
    - **Degrade, don't fail**: a list without six distinct statuses maps to the three-state floor
      (not-started / in-progress / done) — `open`/`in-design`/`ready` → the open status,
      `in-development`/`in-review` → a middle status, `done` → the done status. Use
-     `clickup-status-map.sh` semantics. The list only needs to distinguish those three; **stop**
+     `status-map.sh` semantics. The list only needs to distinguish those three; **stop**
      (fail-loud) only if it cannot even represent three distinct states, naming what it needs.
 
 6. **Write the manifest targets** (merge, preserving any existing `card`/`userStories`). Pass the
    full six-state mapping (or the degraded three-state one) as the status map:
 
    ```bash
-   .specify/extensions/clickup/scripts/bash/clickup-manifest.sh set-targets \
+   .specify/extensions/engine/scripts/bash/manifest.sh set-targets \
      --workspace "<workspace id>" --space "<space id>" --list "<list id>" \
      --status-map '{"open":"<name>","in-design":"<name>","ready":"<name>","in-development":"<name>","in-review":"<name>","done":"<name>"}'
    ```
 
 7. **Create the feature-card in `open`** (FR-013a) — so the `open → in-design` transition at
    `/speckit-specify` is itself visible as "design work started". Derive the desired state with
-   `clickup-derive-status.sh --card` (with no spec yet this yields `open`), map it via
-   `clickup-status-map.sh resolve --logical open --map <statusMapping>`, and:
+   `derive-status.sh --card` (with no spec yet this yields `open`), map it via
+   `status-map.sh resolve --logical open --map <statusMapping>`, and:
    - `clickup_create_task` in `listId` with `name` = feature title, a minimal body, and
      `status` = the mapped `open` status.
-   - Record it: `clickup-manifest.sh set-card --id <id> --hash <hash>` (hash the derived
+   - Record it: `manifest.sh set-card --id <id> --hash <hash>` (hash the derived
      card content per the sync contract). If a `card.id` already exists in the manifest, this
      is a re-provision — do NOT create a second card.
 

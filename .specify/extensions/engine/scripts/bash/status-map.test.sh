@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for clickup-status-map.sh — logical→actual status mapping + 3-state fallback.
-# Run: bash .specify/extensions/clickup/scripts/bash/clickup-status-map.test.sh
+# Tests for status-map.sh — logical→actual status mapping + 3-state fallback.
+# Run: bash .specify/extensions/engine/scripts/bash/status-map.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-MAP="$DIR/clickup-status-map.sh"
+MAP="$DIR/status-map.sh"
 FAIL_F="$(mktemp)"
 ok()  { printf '  ok   %s\n' "$1"; }
 bad() { echo x >> "$FAIL_F"; printf '  FAIL %s — got %s\n' "$1" "$2"; }

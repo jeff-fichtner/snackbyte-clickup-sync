@@ -15,13 +15,13 @@
 # Each collapsed logical state then maps to the nearest configured actual status.
 #
 # Usage:
-#   clickup-status-map.sh resolve --logical <state> --map <json>
+#   status-map.sh resolve --logical <state> --map <json>
 #       Print the actual status name for <state> given the mapping JSON
 #       ({"open":"backlog",...} or a 3-state {"not-started":..,"in-progress":..,"done":..}).
 #       If <state> is absent from a six-key map, or the map is 3-key, the fallback applies.
-#   clickup-status-map.sh floor --logical <state>
+#   status-map.sh floor --logical <state>
 #       Print the three-state floor bucket for <state> (not-started|in-progress|done).
-#   clickup-status-map.sh degraded --map <json>
+#   status-map.sh degraded --map <json>
 #       Print "true" if <map> is a three-state (floor) map, "false" if it maps six states.
 #
 # Output: one status name (resolve) or bucket/bool. Exit 0. Exit 2 on bad usage.
@@ -101,5 +101,5 @@ case "$SUB" in
         printf '%s\n' "$bucket"
         ;;
     *)
-        echo "usage: clickup-status-map.sh {resolve|floor|degraded} ..." >&2; exit 2 ;;
+        echo "usage: status-map.sh {resolve|floor|degraded} ..." >&2; exit 2 ;;
 esac

@@ -79,5 +79,5 @@ case "$SUB" in
         render_block "$FEATURE" "$PATHSPEC" | sed 's/[[:space:]]*$//' | sha256
         ;;
     *)
-        echo "usage: clickup-provenance.sh {render|hash} --feature <name> [--path <pathspec>]" >&2; exit 2 ;;
+        echo "usage: provenance.sh {render|hash} --feature <name> [--path <pathspec>]" >&2; exit 2 ;;
 esac

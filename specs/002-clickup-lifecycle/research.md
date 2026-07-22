@@ -29,7 +29,7 @@ Decision / Rationale / Alternatives.
 
 - **Decision**: Generalize `specify-review-loop` into a single review module whose command prompt
   takes a **target**: `spec` (review `spec.md`, the existing behavior, invoked after specify) or
-  `code` (review the implemented code + tests, invoked inside `/speckit-verify`). One prompt, one
+  `code` (review the implemented code + tests, invoked inside `/speckit-engine-verify`). One prompt, one
   recursive-review pattern, branch on target for what it reads and what "fixable" means.
 - **Rationale**: FR-037 requires one implementation, two invocation points. The recursion,
   fix-unambiguous-then-reloop, and stop-when-nothing-fixable logic are target-independent; only the
@@ -39,12 +39,12 @@ Decision / Rationale / Alternatives.
 
 ## Decision 3: Six-state derivation extends the existing 001 status helper
 
-- **Decision**: Extend `clickup-derive-status.sh` to emit the six card-level logical states from
+- **Decision**: Extend `derive-status.sh` to emit the six card-level logical states from
   observable repo state + the triggering command, and keep subtasks on the existing three-state
   derivation. Card state is a function of "furthest lifecycle command run" (tracked via artifact
   presence + a recorded lifecycle marker), not just checkbox counts: no spec → `open`; spec present
-  → `in-design`; tasks/analyze done → `ready`; implement done → `in-development`; `/speckit-verify`
-  passed → `in-review`; `/speckit-close` signed off → `done`.
+  → `in-design`; tasks/analyze done → `ready`; implement done → `in-development`; `/speckit-engine-verify`
+  passed → `in-review`; `/speckit-engine-close` signed off → `done`.
 - **Rationale**: 001 already derives status from artifact presence + checkbox counts; the six-state
   model is the same idea widened. Keeping subtasks three-state matches FR-016 (subtasks are units
   of work). Deriving from observable state preserves idempotence (re-running yields the same state).
@@ -57,7 +57,7 @@ Decision / Rationale / Alternatives.
 
 - **Decision**: `config.yml` gains a `statuses:` block mapping each of the six logical states to the
   list's actual status name. Provision resolves/validates it against the real list (via
-  `clickup_get_list`), and a new `clickup-status-map.sh` helper applies the mapping and the
+  `clickup_get_list`), and a new `status-map.sh` helper applies the mapping and the
   fall-back-to-three collapse deterministically (unit-tested). A logical state with no distinct
   actual status collapses to the nearest of not-started / in-progress / done.
 - **Rationale**: Constitution's config-only-retargeting constraint + FR-015. Putting the mapping in
@@ -70,7 +70,7 @@ Decision / Rationale / Alternatives.
 
 - **Decision**: Add `after_specify` → sync (`in-design`), `after_analyze` → sync (`ready`),
   `after_converge` → sync (stays `in-development`) to `.specify/extensions.yml`, alongside the
-  existing `after_plan`/`after_tasks`/`after_implement`. `/speckit-verify` and `/speckit-close` are
+  existing `after_plan`/`after_tasks`/`after_implement`. `/speckit-engine-verify` and `/speckit-engine-close` are
   **user-invoked commands** (not automatic hooks) with skill mirrors, because both are human-paced
   (verify is a deliberate certification pass; close waits for sign-off).
 - **Rationale**: FR-013/013b (every command syncs) + FR-011 (close is a distinct command) + US8
@@ -81,7 +81,7 @@ Decision / Rationale / Alternatives.
 
 ## Decision 6: Provenance is Option A (git log → card via MCP), idempotent; Option B is a documented opt-in
 
-- **Decision**: Implement provenance as a tested `clickup-provenance.sh` that renders the feature's
+- **Decision**: Implement provenance as a tested `provenance.sh` that renders the feature's
   git log into a canonical block, pushed to the card via the ClickUp plug's MCP orchestration
   (comment or body section), deduped by hash so re-runs add nothing. Option B (native GitHub
   integration) is documented as opt-in only; when opted in, Option A stands down (FR-024a).

@@ -10,8 +10,8 @@ Generalize the shipped ClickUp plug (`001-clickup-sync`) into **snackbyte-specki
 tracker-agnostic Spec Kit lifecycle engine — and extend it with: (US3) a six-state card lifecycle
 (`open → in-design → ready → in-development → in-review → done`) that syncs on **every** Spec Kit
 command, config-mapped to each list's real status names and falling back to three; (US1/US2/US8)
-a post-implement verify command (`/speckit-verify`: recursive code review + full unit gate +
-automatable E2E → earns `in-review`) and a terminal close-out command (`/speckit-close`: sign-off
+a post-implement verify command (`/speckit-engine-verify`: recursive code review + full unit gate +
+automatable E2E → earns `in-review`) and a terminal close-out command (`/speckit-engine-close`: sign-off
 → final sync → commit → `done`); (US4) an AI-always-writes handoff where humans signal via the
 flow, never the tracker; (US5) manual/light items safe by manifest-absence; (US6) commit
 provenance on the card; (US7) agent-designed per-project rules; and (US9) consolidation of the
@@ -24,7 +24,7 @@ states, config status-mapping + 3-fallback, manifest I/O, item classification, p
 formatting) lives in `scripts/bash/*.sh` with `*.test.sh` unit coverage (Constitution V). The
 non-deterministic tracker orchestration and the review/verify/close ceremonies live in markdown
 command prompts. New lifecycle hooks (`after_specify`, `after_analyze`, `after_converge`) and two
-new commands (`/speckit-verify`, `/speckit-close`) are wired in `.specify/extensions.yml`. The
+new commands (`/speckit-engine-verify`, `/speckit-engine-close`) are wired in `.specify/extensions.yml`. The
 engine consolidates the five snackbyte extensions as command-modules; the tracker-plug boundary is
 kept clean so ClickUp is one plug behind an interface (the local/multi-plug realization is deferred
 per the spec, but the seam is established here).
@@ -141,14 +141,14 @@ verify/close commands, the new hook wiring, and the five consolidated command-mo
 │       ├── commands/
 │       │   ├── speckit.clickup.provision.md      # card born in `open`; resolve status mapping
 │       │   ├── speckit.clickup.sync.md           # 6-state, per-command, provenance
-│       │   ├── speckit.verify.md                 # NEW — review + gate + E2E → in-review (US8)
-│       │   └── speckit.close.md                  # NEW — sign-off → final sync → commit → done (US2)
+│       │   ├── speckit.engine.verify.md                 # NEW — review + gate + E2E → in-review (US8)
+│       │   └── speckit.engine.close.md                  # NEW — sign-off → final sync → commit → done (US2)
 │       └── scripts/bash/
-│           ├── clickup-derive-status.sh          # extend: 6 logical states (card) + 3 (subtasks)
-│           ├── clickup-manifest.sh               # extend: 6-state status, provenance, hashes
-│           ├── clickup-parse-tasks.sh            # (reused as-is)
-│           ├── clickup-status-map.sh             # NEW — logical→actual mapping + 3-fallback
-│           ├── clickup-provenance.sh             # NEW — git log → card provenance (Option A)
+│           ├── derive-status.sh          # extend: 6 logical states (card) + 3 (subtasks)
+│           ├── manifest.sh               # extend: 6-state status, provenance, hashes
+│           ├── parse-tasks.sh            # (reused as-is)
+│           ├── status-map.sh             # NEW — logical→actual mapping + 3-fallback
+│           ├── provenance.sh             # NEW — git log → card provenance (Option A)
 │           └── *.test.sh                         # unit tests for every new/changed helper
 ├── memory/constitution.md                       # v2.0.0 (already updated)
 └── README.md                                    # engine overview (already written)

@@ -30,7 +30,7 @@ the connected ClickUp MCP server — no API/auth code.
 3. Then follow the command verbatim: resolve the active feature and manifest, locate the space
    via `clickup_get_workspace_hierarchy`, find-or-create the shared list, resolve the
    `not-started`/`in-progress`/`done` status mapping from `clickup_get_list`, and write the
-   targets into the feature manifest via `clickup-manifest.sh set-targets`.
+   targets into the feature manifest via `manifest.sh set-targets`.
 4. Fail loud (stop, write nothing) on a missing/ambiguous space or a list whose statuses cannot
    represent the three logical states distinctly — naming exactly what is missing.
 

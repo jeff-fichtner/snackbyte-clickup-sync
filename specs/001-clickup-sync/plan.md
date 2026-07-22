@@ -127,9 +127,9 @@ The delivered artifact is an extension package plus its skill mirrors and hook w
 │       │   ├── speckit.clickup.provision.md     # find-or-create space+list, pin status mapping
 │       │   └── speckit.clickup.sync.md          # derive+diff+push card/US-subtasks/checklist/status
 │       └── scripts/bash/
-│           ├── clickup-manifest.sh              # read/merge/write specs/<feature>/.clickup-sync.json
-│           ├── clickup-parse-tasks.sh           # parse tasks.md → US-grouped lines + done-state + hash
-│           └── clickup-derive-status.sh         # repo state → not-started/in-progress/done
+│           ├── manifest.sh              # read/merge/write specs/<feature>/.clickup-sync.json
+│           ├── parse-tasks.sh           # parse tasks.md → US-grouped lines + done-state + hash
+│           └── derive-status.sh         # repo state → not-started/in-progress/done
 ├── extensions.yml                              # add: installed[] + hooks rows (after_plan/after_tasks/
 │                                               #      after_implement)
 .claude/skills/

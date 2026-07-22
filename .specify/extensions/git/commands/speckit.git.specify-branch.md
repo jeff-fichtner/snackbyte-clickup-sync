@@ -13,7 +13,7 @@ full agent-driven procedure.
 
 ## Mechanical operations (script)
 
-`.specify/extensions/git-specify-branch/scripts/bash/prepare-specify-branch.sh <subcommand> [--json]`
+`.specify/extensions/git/scripts/bash/prepare-specify-branch.sh <subcommand> [--json]`
 
 - `status` — report working-tree state as JSON (clean/dirty, current branch,
   default branch, dirty file list, ahead-of-remote count). Run this first.

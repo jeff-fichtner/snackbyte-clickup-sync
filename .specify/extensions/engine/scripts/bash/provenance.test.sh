@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for clickup-provenance.sh — git log → canonical, hash-deduped provenance block.
-# Run: bash .specify/extensions/clickup/scripts/bash/clickup-provenance.test.sh
+# Tests for provenance.sh — git log → canonical, hash-deduped provenance block.
+# Run: bash .specify/extensions/engine/scripts/bash/provenance.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-PROV="$DIR/clickup-provenance.sh"
+PROV="$DIR/provenance.sh"
 FAIL_F="$(mktemp)"
 ok()  { printf '  ok   %s\n' "$1"; }
 bad() { echo x >> "$FAIL_F"; printf '  FAIL %s — got %s\n' "$1" "$2"; }

@@ -1,10 +1,10 @@
-# Contract: `/speckit-close` command (US2)
+# Contract: `/speckit-engine-close` command (US2)
 
 The terminal ceremony: surface remaining manual tasks → human sign-off → mark done → final sync →
 commit. User-invoked (human-paced), run when the human is ready. Reaches the `done` state.
 
 ## Preconditions
-- The card is at `in-review` (i.e. `/speckit-verify` passed — the normal path).
+- The card is at `in-review` (i.e. `/speckit-engine-verify` passed — the normal path).
 - The check gate is green (close re-runs it — FR-010a).
 
 ## Steps (in order)

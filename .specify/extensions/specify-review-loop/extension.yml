@@ -1,7 +1,7 @@
 schema_version: "1.0"
 
 extension:
-  id: specify-review-loop
+  id: specify
   name: "Specify Review Loop"
   version: "1.0.0"
   description: "After /speckit-specify: recursively review the new spec for inconsistencies, ambiguity, and gaps, fixing the unambiguous ones each pass, until nothing fixable remains or an issue needs the user's direct attention"

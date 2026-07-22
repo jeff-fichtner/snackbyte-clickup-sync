@@ -26,14 +26,14 @@ Point `config.yml` at a list with only three statuses.
 **Expect**: the six logical states collapse onto the three (nearest-status), the sync reports the
 degradation, and no run fails.
 
-## Scenario 3 — `/speckit-verify` earns `in-review` (US8 / SC-014)
-On a completed, green feature run `/speckit-verify`.
+## Scenario 3 — `/speckit-engine-verify` earns `in-review` (US8 / SC-014)
+On a completed, green feature run `/speckit-engine-verify`.
 **Expect**: recursive code review runs, the unit gate runs (must pass), automatable E2E runs, and
 only then the card advances to `in-review`. **Negative**: with a red gate or an unresolved review
 finding, verify stops and the card stays `in-development` (never `in-review`).
 
-## Scenario 4 — `/speckit-close` reaches `done` (US2 / SC-003, SC-004, SC-012)
-From `in-review`, run `/speckit-close`.
+## Scenario 4 — `/speckit-engine-close` reaches `done` (US2 / SC-003, SC-004, SC-012)
+From `in-review`, run `/speckit-engine-close`.
 **Expect**: it re-runs the gate (red → refuses, SC-012), surfaces manual tasks and waits for
 sign-off (never auto-checks, SC-003), then on sign-off marks tasks done, syncs the card to `done`,
 and commits the close-out in a distinct commit while the sync itself makes zero commits (SC-004).

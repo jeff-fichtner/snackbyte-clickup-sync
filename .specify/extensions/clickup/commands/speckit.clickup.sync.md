@@ -19,22 +19,24 @@ read-only mirror for them.
 `.specify/extensions.yml` passes the moment). The command→state mapping (contracts/status-model.md):
 `after_specify`/`clarify`/`plan` → `in-design`; `after_tasks`/`after_analyze` → `ready`;
 `after_implement` → `in-development` (also **set the `implementStarted` marker**, below);
-`after_converge` → stays `in-development`. `/speckit-verify` (→ `in-review`) and `/speckit-close`
+`after_converge` → stays `in-development`. `/speckit-engine-verify` (→ `in-review`) and `/speckit-engine-close`
 (→ `done`) set their own markers and call this sync themselves.
 
 ## Preconditions
 
 - The ClickUp MCP server is connected.
-- ClickUp sync is not disabled for this repo. If `.specify/extensions/clickup/config.yml`
-  has `enabled: false` (the user previously declined), **silently do nothing and exit 0** — do
-  not ask, do not sync. (Matches provision's decline state.)
+- ClickUp sync is not disabled for this repo. Config is layered — read
+  `.specify/extensions/clickup/config.local.yml` (gitignored override) first, then
+  `config.yml` (distributed source) for anything it omits. If the merged view has
+  `enabled: false` (the user previously declined), **silently do nothing and exit 0** — do not
+  ask, do not sync. (Matches provision's decline state.)
 - The manifest has `listId` and `statusMapping`. If not, **refuse** and instruct the user to
   run `/speckit-clickup-provision` first — do NOT create the list or guess a mapping here.
   Check with:
 
   ```bash
-  .specify/extensions/clickup/scripts/bash/clickup-manifest.sh get listId
-  .specify/extensions/clickup/scripts/bash/clickup-manifest.sh get statusMapping
+  .specify/extensions/engine/scripts/bash/manifest.sh get listId
+  .specify/extensions/engine/scripts/bash/manifest.sh get statusMapping
   ```
 - `spec.md` exists for the feature (the card is keyed off the spec).
 
@@ -45,18 +47,18 @@ card can derive `in-development` (artifact presence alone can't distinguish `rea
 `in-development` — see contracts/status-model.md):
 
 ```bash
-.specify/extensions/clickup/scripts/bash/clickup-manifest.sh set-lifecycle --key implementStarted --value true
+.specify/extensions/engine/scripts/bash/manifest.sh set-lifecycle --key implementStarted --value true
 ```
 
 Then run the helpers to compute the desired state:
 
 ```bash
 # US-grouped task lines with done-state (empty groups if no tasks.md yet):
-.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.sh
+.specify/extensions/engine/scripts/bash/parse-tasks.sh
 # Six-state CARD status (open|in-design|ready|in-development|in-review|done):
-.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh --card
+.specify/extensions/engine/scripts/bash/derive-status.sh --card
 # Map a logical state to this list's actual status name (handles the 3-state fallback):
-.specify/extensions/clickup/scripts/bash/clickup-status-map.sh resolve --logical <state> --map "$(clickup-manifest.sh get statusMapping)"
+.specify/extensions/engine/scripts/bash/status-map.sh resolve --logical <state> --map "$(manifest.sh get statusMapping)"
 ```
 
 Then compute each element's desired content:
@@ -70,13 +72,13 @@ Then compute each element's desired content:
   the **feature-card's own** description, not a subtask.
 - **US dependency edges**: from the **spec's user-story numbering/priority order** (US2
   waits_on US1, US3 waits_on US1+US2, …) — NOT tasks.md phase order.
-- **Card status**: the feature-wide six-state value (`clickup-derive-status.sh --card`), mapped
-  to the list's actual status name via `clickup-status-map.sh resolve` against `statusMapping`
+- **Card status**: the feature-wide six-state value (`derive-status.sh --card`), mapped
+  to the list's actual status name via `status-map.sh resolve` against `statusMapping`
   (this also applies the 3-state fallback for reduced lists — report the degradation once).
 - **Per-US-subtask status**: EACH US-subtask gets its own **three-state** status (a subtask is a
-  unit of work, FR-016), from that story's own task completion — `clickup-derive-status.sh --us
+  unit of work, FR-016), from that story's own task completion — `derive-status.sh --us
   <US#>` (all its tasks checked → done; some → in-progress; none → not-started) — mapped via
-  `clickup-status-map.sh` (the floor buckets) and re-computed every run. A subtask never carries
+  `status-map.sh` (the floor buckets) and re-computed every run. A subtask never carries
   the design/ready/review states — those are feature-level.
 
 Hash each element with a **canonical, reproducible serialization** (hash the derived repo-side
@@ -84,7 +86,7 @@ data, NOT the rendered ClickUp prose — so any future run recomputes the identi
 no-op stays a no-op):
 
 ```bash
-.specify/extensions/clickup/scripts/bash/clickup-manifest.sh hash --string "<content>"
+.specify/extensions/engine/scripts/bash/manifest.sh hash --string "<content>"
 ```
 
 Canonical content per element (keep this exact — the stored manifest hashes depend on it):
@@ -92,7 +94,7 @@ Canonical content per element (keep this exact — the stored manifest hashes de
 - **Card**: `status=<feature-derived-status>;feature=<feature-dir-name>`
 - **US-subtask**: `us=<US#>;status=<per-us-derived-status>;items=<compact-json of that story's parse-tasks items array>`
 
-where the items array is `clickup-parse-tasks.sh` output filtered to that story
+where the items array is `parse-tasks.sh` output filtered to that story
 (`.groups[] | select(.us==$u) | .items`, compact). Because these derive purely from repo state,
 re-running with no repo change yields identical hashes → every element skips (SC-002).
 
@@ -106,7 +108,7 @@ ClickUp to an owned element is reverted on the next sync (never merged back into
 1. **Feature-card**:
    - No `card.id` in manifest → `clickup_create_task` in `listId` with `name` = feature title,
      `markdown_description` = card body, `status` = `statusMapping[derived]`. Record via
-     `clickup-manifest.sh set-card --id <id> --hash <hash>`.
+     `manifest.sh set-card --id <id> --hash <hash>`.
    - Have `card.id`, hash changed → `clickup_update_task` (name/description/status). Refresh hash.
    - Have `card.id` but `clickup_get_task` 404s (deleted in UI) → recreate and refresh the id.
 2. **US-subtasks** (one per user story):
@@ -127,12 +129,12 @@ ClickUp to an owned element is reverted on the next sync (never merged back into
      entirely (no double-posting — FR-024a).
    - **Option A**: render + hash the block:
      ```bash
-     .specify/extensions/clickup/scripts/bash/clickup-provenance.sh render --feature <feature>
-     .specify/extensions/clickup/scripts/bash/clickup-provenance.sh hash --feature <feature>
+     .specify/extensions/engine/scripts/bash/provenance.sh render --feature <feature>
+     .specify/extensions/engine/scripts/bash/provenance.sh hash --feature <feature>
      ```
      If the hash differs from the manifest's `card.provenanceHash`, push the block to the card via
      MCP (a comment or a body section) and record the new hash with
-     `clickup-manifest.sh set-provenance-hash --hash <h>`. If the hash is unchanged, **skip** — no
+     `manifest.sh set-provenance-hash --hash <h>`. If the hash is unchanged, **skip** — no
      duplicate links (SC-009). One-way, like everything else.
 
 ## Progressive materialization & edge cases
@@ -161,7 +163,7 @@ checkbox items added/flipped/removed; dependencies set/removed; status set.
 - Never modifies `tasks.md` or any repo artifact based on ClickUp state (one-way).
 - Never deletes a whole tracked feature-card for a removed feature (v1).
 - Never sets `in-review` or `done` from a sync alone — those states come only from
-  `/speckit-verify` (marker `verifyPassed`) and `/speckit-close` (marker `closedOut`). A plain
+  `/speckit-engine-verify` (marker `verifyPassed`) and `/speckit-engine-close` (marker `closedOut`). A plain
   sync derives at most `in-development`.
 - Never requires a human to touch the tracker; the AI writes every state.
 - Never re-scans the whole list for dedup — the manifest is the index.

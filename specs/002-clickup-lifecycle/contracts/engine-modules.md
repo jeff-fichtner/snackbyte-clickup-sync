@@ -11,15 +11,15 @@ engine gives a project the whole spine plus the tracker-plug interface.
 | Module | Role | Lifecycle point |
 |---|---|---|
 | `git-specify-branch` | clean tree + feature branch | `before_specify` |
-| `specify-review-loop` (→ review module) | recursive review, **target: spec or code** | after specify; inside `/speckit-verify` |
+| `specify-review-loop` (→ review module) | recursive review, **target: spec or code** | after specify; inside `/speckit-engine-verify` |
 | `analyze-autofix` | apply unambiguous artifact fixes | `after_analyze` |
-| `git-commit` | checkpoint commit | `before_implement`; reused by `/speckit-close` |
+| `git-commit` | checkpoint commit | `before_implement`; reused by `/speckit-engine-close` |
 | `clickup-sync` (the ClickUp plug) | tracker mirroring | `after_*` + verify/close |
 
 ## Review module — two targets (FR-037)
 One implementation, parameterized by target:
 - `target: spec` — review `spec.md` (the existing `specify-review-loop` behavior), after specify.
-- `target: code` — review implemented code + tests, invoked by `/speckit-verify` step 1.
+- `target: code` — review implemented code + tests, invoked by `/speckit-engine-verify` step 1.
 Same recursion (fix-unambiguous → reloop → stop when nothing fixable or needs the user). The review
 logic exists once (not duplicated).
 

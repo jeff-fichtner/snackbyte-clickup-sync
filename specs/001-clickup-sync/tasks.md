@@ -38,7 +38,7 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 **Purpose**: Create the extension package scaffold, mirroring the existing `git-commit` extension.
 
 - [X] T001 Create the package directory tree `.specify/extensions/clickup/{commands,scripts/bash}/` and empty `README.md`
-- [X] T002 Write `.specify/extensions/clickup/extension.yml` (schema_version "1.0"; id `clickup-sync`; declare the two commands and their hook slots per plan.md), modeled on `.specify/extensions/git-commit/extension.yml`
+- [X] T002 Write `.specify/extensions/clickup/extension.yml` (schema_version "1.0"; id `clickup-sync`; declare the two commands and their hook slots per plan.md), modeled on `.specify/extensions/git/extension.yml`
 - [X] T003 [P] Write the secret-free `.specify/extensions/clickup/config.yml` placeholder (`space`/`list` = `<your-…>`) per contracts/config.schema.md
 - [X] T004 [P] Write `.specify/extensions/clickup/README.md` — what the extension is, how to configure, what it touches, and that it is MCP-only
 
@@ -50,13 +50,13 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 
 **⚠️ CRITICAL**: No user-story command work should begin until these helpers exist and pass their tests.
 
-- [X] T005 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-manifest.sh` — read/merge/write `specs/<feature>/.clickup-sync.json` (subcommands: get-targets, set-targets, get-element, set-element), reusing `common.sh` (`get_feature_paths`, `has_jq`, `json_escape`) per contracts/manifest.schema.md
-- [X] T006 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.sh` — parse `tasks.md` into US-grouped task lines with done-state, emit JSON (feature, per-US `- [ ] T00x` lines), falling back to an "unattributed" group per FR-002a
-- [X] T007 [P] Implement `.specify/extensions/clickup/scripts/bash/clickup-derive-status.sh` — map repo state (plan.md presence + checkbox counts) to `not-started|in-progress|done` per research Decision 4
-- [X] T008 Add a stable content-hash helper (sha256 over normalized derived content) to `clickup-manifest.sh` (or a sibling `clickup-hash.sh`) so a no-op run hashes equal (SC-002); no time/random in hashed input
-- [X] T009 [P] Test `clickup-parse-tasks.sh` in `.specify/extensions/clickup/scripts/bash/clickup-parse-tasks.test.sh` (empty/malformed tasks.md, mixed checked/unchecked, unattributed lines), `*.test.sh` style
-- [X] T010 [P] Test `clickup-derive-status.sh` in `.specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh` (spec-only, mid-implement, all-checked)
-- [X] T011 [P] Test `clickup-manifest.sh` + hashing in `.specify/extensions/clickup/scripts/bash/clickup-manifest.test.sh` (round-trip, merge without clobber, stable no-op hash, no-jq fallback)
+- [X] T005 [P] Implement `.specify/extensions/engine/scripts/bash/manifest.sh` — read/merge/write `specs/<feature>/.clickup-sync.json` (subcommands: get-targets, set-targets, get-element, set-element), reusing `common.sh` (`get_feature_paths`, `has_jq`, `json_escape`) per contracts/manifest.schema.md
+- [X] T006 [P] Implement `.specify/extensions/engine/scripts/bash/parse-tasks.sh` — parse `tasks.md` into US-grouped task lines with done-state, emit JSON (feature, per-US `- [ ] T00x` lines), falling back to an "unattributed" group per FR-002a
+- [X] T007 [P] Implement `.specify/extensions/engine/scripts/bash/derive-status.sh` — map repo state (plan.md presence + checkbox counts) to `not-started|in-progress|done` per research Decision 4
+- [X] T008 Add a stable content-hash helper (sha256 over normalized derived content) to `manifest.sh` (or a sibling `clickup-hash.sh`) so a no-op run hashes equal (SC-002); no time/random in hashed input
+- [X] T009 [P] Test `parse-tasks.sh` in `.specify/extensions/engine/scripts/bash/parse-tasks.test.sh` (empty/malformed tasks.md, mixed checked/unchecked, unattributed lines), `*.test.sh` style
+- [X] T010 [P] Test `derive-status.sh` in `.specify/extensions/engine/scripts/bash/derive-status.test.sh` (spec-only, mid-implement, all-checked)
+- [X] T011 [P] Test `manifest.sh` + hashing in `.specify/extensions/engine/scripts/bash/manifest.test.sh` (round-trip, merge without clobber, stable no-op hash, no-jq fallback)
 
 **Checkpoint**: Helpers pass their tests under `npm run check:all` conventions — command prompts can now be written on a trustworthy base.
 
@@ -70,7 +70,7 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 
 **Independent Test**: From a repo with no recorded target, run provision → manifest has `listId` + `statusMapping` and the list exists; re-run → no duplicate, same IDs; point at a list with insufficient statuses → stops naming the missing ones, writes nothing.
 
-- [X] T012 [US3] Write `.specify/extensions/clickup/commands/speckit.clickup.provision.md` implementing contracts/provision.command.md: read config, `clickup_get_workspace_hierarchy` to locate space (handle 0/ambiguous), find-or-create list (`clickup_create_list`), resolve `statusMapping` from `clickup_get_list`, fail-loud if insufficient (FR-012), write targets via `clickup-manifest.sh`
+- [X] T012 [US3] Write `.specify/extensions/clickup/commands/speckit.clickup.provision.md` implementing contracts/provision.command.md: read config, `clickup_get_workspace_hierarchy` to locate space (handle 0/ambiguous), find-or-create list (`clickup_create_list`), resolve `statusMapping` from `clickup_get_list`, fail-loud if insufficient (FR-012), write targets via `manifest.sh`
 - [X] T013 [P] [US3] Create the skill mirror `.claude/skills/speckit-clickup-provision/SKILL.md` (user-invocable) pointing at the provision command
 - [X] T014 [US3] Register provision in `.specify/extensions.yml`: add `clickup-sync` to `installed:` and add the `after_plan` optional hook row for `speckit.clickup.provision`
 
@@ -86,7 +86,7 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 
 - [X] T015 [US1] Write `.specify/extensions/clickup/commands/speckit.clickup.sync.md` implementing contracts/sync.command.md: refuse if manifest lacks `listId`/`statusMapping`; derive body/US-subtasks/checkbox-lists/deps/status via the helpers; diff against manifest; create/update via `clickup_create_task`/`clickup_update_task` (card + `parent` subtasks + `markdown_description`); skip unchanged with zero MCP calls (SC-002)
 - [X] T016 [US1] In sync, synthesize the verbose card body (spec summary + user-story list w/ priorities + artifact links, not full copies) per FR-004a
-- [X] T017 [US1] In sync, render each user story as a US-subtask whose `markdown_description` holds the `- [ ] T00x …` checkbox list from `clickup-parse-tasks.sh`, boxes reflecting done-state (FR-002a/003); unattributed lines → card's own description. Rewrite the checkbox section of the description **wholesale** each run so a line removed from `tasks.md` disappears from the card (not just flips) — the "task line removed" edge case, no residual boxes
+- [X] T017 [US1] In sync, render each user story as a US-subtask whose `markdown_description` holds the `- [ ] T00x …` checkbox list from `parse-tasks.sh`, boxes reflecting done-state (FR-002a/003); unattributed lines → card's own description. Rewrite the checkbox section of the description **wholesale** each run so a line removed from `tasks.md` disappears from the card (not just flips) — the "task line removed" edge case, no residual boxes
 - [X] T018 [US1] In sync, implement progressive materialization: create the card as soon as `spec.md` exists (no `tasks.md` required), re-deriving everything each run (FR-007a/b). Reconcile with the empty/malformed-`tasks.md` edge case: a spec-present feature whose `tasks.md` yields zero recognizable lines still creates the card (body + status + US-subtasks) but adds **no** checkbox list — an absent/empty `tasks.md` is not the same as an absent spec, and no empty-checklist noise is produced
 - [X] T019 [US1] In sync, set/reconcile US-subtask dependency links via `clickup_add_task_dependency`/`clickup_remove_task_dependency` from the **spec's user-story numbering/priority order** (NOT tasks.md phase order — research Decision 3; FR-007c/d)
 - [X] T020 [US1] In sync, handle a missing card/subtask (`clickup_get_task` 404) by recreating and refreshing manifest IDs (FR-018); handle an **orphaned US-subtask** (a story removed/renumbered out of the spec) by — **v1 default: report it in the run summary and leave it in place (do NOT delete)** — and re-pointing its dependency edges so there is no silent drift (FR-007d, "user story removed/renumbered" edge case); write a per-run created/updated/skipped/orphaned summary (FR-007)
@@ -103,7 +103,7 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 
 **Independent Test**: Sync at spec-only, mid-implement, all-checked → status reads not-started, in-progress, done, with no manual change in ClickUp.
 
-- [X] T023 [US2] In sync, compute status via `clickup-derive-status.sh` and write it on the card `clickup_update_task` using `statusMapping` (FR-008/009), recomputing every run
+- [X] T023 [US2] In sync, compute status via `derive-status.sh` and write it on the card `clickup_update_task` using `statusMapping` (FR-008/009), recomputing every run
 - [X] T024 [US2] Ensure status is set on the card even at spec-only stage (not-started), consistent with progressive materialization; only re-write when the mapped status changed (part of the skip/diff logic)
 
 **Checkpoint**: Status progression verified (quickstart Scenario 4). US1+US2 together = the full MVP card.
@@ -186,14 +186,14 @@ everything lives under `.specify/extensions/clickup/`, `.claude/skills/`, and
 
 ```bash
 # Author the three independent helpers together (distinct files):
-Task: "clickup-manifest.sh"      (T005)
-Task: "clickup-parse-tasks.sh"   (T006)
-Task: "clickup-derive-status.sh" (T007)
+Task: "manifest.sh"      (T005)
+Task: "parse-tasks.sh"   (T006)
+Task: "derive-status.sh" (T007)
 
 # Then their tests together:
-Task: "clickup-parse-tasks.test.sh"   (T009)
-Task: "clickup-derive-status.test.sh" (T010)
-Task: "clickup-manifest.test.sh"      (T011)
+Task: "parse-tasks.test.sh"   (T009)
+Task: "derive-status.test.sh" (T010)
+Task: "manifest.test.sh"      (T011)
 ```
 
 ---

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Tests for clickup-derive-status.sh — six-state CARD lifecycle + three-state SUBTASK status.
-# Run: bash .specify/extensions/clickup/scripts/bash/clickup-derive-status.test.sh
+# Tests for derive-status.sh — six-state CARD lifecycle + three-state SUBTASK status.
+# Run: bash .specify/extensions/engine/scripts/bash/derive-status.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-DERIVE="$DIR/clickup-derive-status.sh"
+DERIVE="$DIR/derive-status.sh"
 FAIL_F="$(mktemp)"
 ok()  { printf '  ok   %s\n' "$1"; }
 bad() { echo x >> "$FAIL_F"; printf '  FAIL %s — got %s\n' "$1" "$2"; }

@@ -1,4 +1,4 @@
-# Contract: `/speckit-verify` command (US8)
+# Contract: `/speckit-engine-verify` command (US8)
 
 The earned-review certification pass. Run after `implement` (and the `after_implement`→converge
 chain). On success it advances the card to `in-review`; on any failure it stops and leaves the card
@@ -28,5 +28,5 @@ at `in-development`. User-invoked (not a hook) — it is a deliberate certificat
 
 ## Never
 - Never advances to `in-review` over a red gate or an unresolved review finding.
-- Never signs off manual tasks or moves to `done` — that is `/speckit-close` (US2).
+- Never signs off manual tasks or moves to `done` — that is `/speckit-engine-close` (US2).
 - Never writes back into repo artifacts based on tracker state (Constitution I).

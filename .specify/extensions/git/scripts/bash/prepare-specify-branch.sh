@@ -39,7 +39,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-# SCRIPT_DIR is .specify/extensions/git-specify-branch/scripts/bash; four levels
+# SCRIPT_DIR is .specify/extensions/git/scripts/bash; four levels
 # up reaches .specify, then into scripts/bash for core helpers.
 # shellcheck source=/dev/null
 source "$SCRIPT_DIR/../../../../scripts/bash/common.sh"
